@@ -24,7 +24,6 @@ class MainCustomers extends StatelessWidget {
             'status': 'Activo',
           },
         ]),
-        // customersService.getCustomersStreamByBusiness(businessId)
         columns: const [
           DataColumn(
             label: Text(

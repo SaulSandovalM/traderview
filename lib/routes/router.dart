@@ -5,6 +5,8 @@ import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/customers/view/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
+import 'package:traderview/screens/investments/view/investments.dart';
+import 'package:traderview/screens/reports/view/reports.dart';
 import 'package:traderview/screens/signin/view/sign_in.dart';
 
 final router = GoRouter(
@@ -97,6 +99,22 @@ final router = GoRouter(
                         selectedTileColor: Colors.blue,
                         onTap: () => context.go('/customers'),
                       ),
+                      ListTile(
+                        leading: const Icon(Icons.trending_up),
+                        title: const Text('Inversiones'),
+                        selected: GoRouterState.of(context).uri.path ==
+                            '/investments',
+                        selectedTileColor: Colors.blue,
+                        onTap: () => context.go('/investments'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.file_download),
+                        title: const Text('Reportes'),
+                        selected:
+                            GoRouterState.of(context).uri.path == '/reports',
+                        selectedTileColor: Colors.blue,
+                        onTap: () => context.go('/reports'),
+                      ),
                     ],
                   ),
                 )
@@ -133,12 +151,20 @@ final router = GoRouter(
           builder: (context, state) => const AdminDash(),
         ),
         GoRoute(
+          path: '/client-dashboard',
+          builder: (context, state) => const ClientDashboard(),
+        ),
+        GoRoute(
           path: '/customers',
           builder: (context, state) => const Customers(),
         ),
         GoRoute(
-          path: '/client-dashboard',
-          builder: (context, state) => const ClientDashboard(),
+          path: '/reports',
+          builder: (context, state) => const Reports(),
+        ),
+        GoRoute(
+          path: '/investments',
+          builder: (context, state) => const Investments(),
         ),
       ],
     ),

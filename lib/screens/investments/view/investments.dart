@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:traderview/screens/customers/widget/main_customers.dart';
+import 'package:traderview/screens/investments/widget/main_investments.dart';
 
-class Customers extends StatelessWidget {
-  const Customers({super.key});
+class Investments extends StatelessWidget {
+  const Investments({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,13 +11,13 @@ class Customers extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Gestión de Clientes',
+            'Gestión de Inversiones',
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
             ),
           ),
-          MainCustomers(),
+          MainInvestments(),
         ],
       ),
     );
