@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
-import 'package:traderview/screens/dashboard/view/dashboard.dart';
+import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/signin/view/sign_in.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -49,7 +49,7 @@ class AuthWrapper extends StatelessWidget {
             debugPrint("User role: $role");
 
             if (role == 'admin') {
-              return const Dashboard();
+              return const AdminDash();
             } else if (role == 'client') {
               return const ClientDashboard();
             } else {

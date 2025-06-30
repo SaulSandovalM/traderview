@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
-import 'package:traderview/screens/dashboard/view/dashboard.dart';
+import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/signin/view/sign_in.dart';
 
 final router = GoRouter(
@@ -121,7 +121,7 @@ final router = GoRouter(
         ),
         GoRoute(
           path: '/dashboard',
-          builder: (context, state) => const Dashboard(),
+          builder: (context, state) => const AdminDash(),
         ),
         GoRoute(
           path: '/client-dashboard',
