@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
+import 'package:traderview/screens/customers/view/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/signin/view/sign_in.dart';
 
@@ -88,6 +89,14 @@ final router = GoRouter(
                         selectedTileColor: Colors.blue,
                         onTap: () => context.go('/dashboard'),
                       ),
+                      ListTile(
+                        leading: const Icon(Icons.person),
+                        title: const Text('Clientes'),
+                        selected:
+                            GoRouterState.of(context).uri.path == '/customers',
+                        selectedTileColor: Colors.blue,
+                        onTap: () => context.go('/customers'),
+                      ),
                     ],
                   ),
                 )
@@ -122,6 +131,10 @@ final router = GoRouter(
         GoRoute(
           path: '/dashboard',
           builder: (context, state) => const AdminDash(),
+        ),
+        GoRoute(
+          path: '/customers',
+          builder: (context, state) => const Customers(),
         ),
         GoRoute(
           path: '/client-dashboard',
