@@ -60,7 +60,6 @@ class MyApp extends StatelessWidget {
       routerConfig: router,
       theme: ThemeData(
         fontFamily: 'Montserrat',
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/customers/view/customers.dart';
@@ -28,9 +29,9 @@ final router = GoRouter(
         final user = FirebaseAuth.instance.currentUser;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFedeef1),
+          backgroundColor: CustomColor.backgroundBase,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFedeef1),
+            backgroundColor: CustomColor.backgroundBase,
             elevation: 0,
             leading: user != null
                 ? Builder(
@@ -121,13 +122,13 @@ final router = GoRouter(
               : null,
           body: SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        child,
-                        // Footer puede ir aquí si lo deseas
+                        _centerContainer(child),
                       ],
                     ),
                   ),
@@ -177,3 +178,12 @@ final router = GoRouter(
     ),
   ),
 );
+
+Widget _centerContainer(Widget child) {
+  return Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 900),
+      child: child,
+    ),
+  );
+}

@@ -1,60 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:traderview/core/constants/colors.dart';
+import 'package:traderview/core/widgets/custom_card.dart';
 
 class PaginatedTable<T> extends StatelessWidget {
-  final Stream<List<T>> stream;
-  final List<DataColumn> columns;
-  final DataRow Function(T data, int index) buildRow;
-  final int rowsPerPage;
+  final String title;
+  final List<String> headers;
+  final List<T> items;
+  final Widget Function(T item) rowBuilder;
+  final VoidCallback? onNextPage;
+  final VoidCallback? onPrevPage;
+  final bool isLastPage;
 
   const PaginatedTable({
     super.key,
-    required this.stream,
-    required this.columns,
-    required this.buildRow,
-    this.rowsPerPage = 10,
+    required this.title,
+    required this.headers,
+    required this.items,
+    required this.rowBuilder,
+    this.onNextPage,
+    this.onPrevPage,
+    this.isLastPage = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<T>>(
-      stream: stream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No hay información'));
-        }
-
-        final data = snapshot.data!;
-        return PaginatedDataTable(
-          columns: columns,
-          source: _GenericDataSource(data, buildRow),
-          rowsPerPage: rowsPerPage,
-        );
-      },
+    return CustomCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeaderWithControls(),
+          const SizedBox(height: 24),
+          _buildTableHeader(),
+          const Divider(),
+          ...items.map(rowBuilder),
+        ],
+      ),
     );
   }
-}
 
-class _GenericDataSource<T> extends DataTableSource {
-  final List<T> data;
-  final DataRow Function(T, int) buildRow;
-
-  _GenericDataSource(this.data, this.buildRow);
-
-  @override
-  DataRow? getRow(int index) {
-    if (index >= data.length) return null;
-    return buildRow(data[index], index);
+  Widget _buildHeaderWithControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: CustomColor.bgButtonTableSecond,
+              radius: 16,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.chevron_left,
+                  color: Colors.grey,
+                  size: 16,
+                ),
+                onPressed: onPrevPage,
+              ),
+            ),
+            const SizedBox(width: 8),
+            CircleAvatar(
+              backgroundColor: CustomColor.bgButtonTablePrimary,
+              radius: 16,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.black,
+                  size: 16,
+                ),
+                onPressed: isLastPage ? null : onNextPage,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => data.length;
-
-  @override
-  int get selectedRowCount => 0;
+  Widget _buildTableHeader() {
+    return Row(
+      children: [
+        for (int i = 0; i < headers.length; i++)
+          Expanded(
+            flex: i == headers.length - 1 ? 1 : 2,
+            child: Row(
+              mainAxisAlignment: i == headers.length - 1
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
+              children: [
+                Text(
+                  headers[i],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 }
