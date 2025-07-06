@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/core/constants/colors.dart';
+import 'package:traderview/core/widgets/custom_list_tile.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/createcustomer/create_customer.dart';
@@ -84,119 +85,27 @@ final router = GoRouter(
               ? Drawer(
                   child: ListView(
                     padding: EdgeInsets.zero,
-                    children: [
-                      const DrawerHeader(child: Text('Menú')),
-                      ListTile(
-                        leading: Icon(
-                          Icons.dashboard,
-                          color: GoRouter.of(context)
-                                      .routerDelegate
-                                      .currentConfiguration
-                                      .fullPath ==
-                                  '/dashboard'
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                        title: Text(
-                          'Inicio',
-                          style: TextStyle(
-                            color: GoRouter.of(context)
-                                        .routerDelegate
-                                        .currentConfiguration
-                                        .fullPath ==
-                                    '/dashboard'
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                        selected:
-                            GoRouterState.of(context).uri.path == '/dashboard',
-                        selectedTileColor: CustomColor.bgButtonPrimary,
-                        onTap: () => context.go('/dashboard'),
+                    children: const [
+                      DrawerHeader(child: Text('Menú')),
+                      CustomListTile(
+                        route: '/dashboard',
+                        text: 'Inicio',
+                        icon: Icons.dashboard,
                       ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.person,
-                          color: GoRouter.of(context)
-                                      .routerDelegate
-                                      .currentConfiguration
-                                      .fullPath ==
-                                  '/customers'
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                        title: Text(
-                          'Clientes',
-                          style: TextStyle(
-                            color: GoRouter.of(context)
-                                        .routerDelegate
-                                        .currentConfiguration
-                                        .fullPath ==
-                                    '/customers'
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                        selected:
-                            GoRouterState.of(context).uri.path == '/customers',
-                        selectedTileColor: CustomColor.bgButtonPrimary,
-                        onTap: () => context.go('/customers'),
+                      CustomListTile(
+                        route: '/customers',
+                        text: 'Clientes',
+                        icon: Icons.group,
                       ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.trending_up,
-                          color: GoRouter.of(context)
-                                      .routerDelegate
-                                      .currentConfiguration
-                                      .fullPath ==
-                                  '/investments'
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                        title: Text(
-                          'Inversiones',
-                          style: TextStyle(
-                            color: GoRouter.of(context)
-                                        .routerDelegate
-                                        .currentConfiguration
-                                        .fullPath ==
-                                    '/investments'
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                        selected: GoRouterState.of(context).uri.path ==
-                            '/investments',
-                        selectedTileColor: CustomColor.bgButtonPrimary,
-                        onTap: () => context.go('/investments'),
+                      CustomListTile(
+                        route: '/investments',
+                        text: 'Inversiones',
+                        icon: Icons.trending_up,
                       ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.file_download,
-                          color: GoRouter.of(context)
-                                      .routerDelegate
-                                      .currentConfiguration
-                                      .fullPath ==
-                                  '/reports'
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                        title: Text(
-                          'Reportes',
-                          style: TextStyle(
-                            color: GoRouter.of(context)
-                                        .routerDelegate
-                                        .currentConfiguration
-                                        .fullPath ==
-                                    '/reports'
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                        selected:
-                            GoRouterState.of(context).uri.path == '/reports',
-                        selectedTileColor: CustomColor.bgButtonPrimary,
-                        onTap: () => context.go('/reports'),
+                      CustomListTile(
+                        route: '/reports',
+                        text: 'Reportes',
+                        icon: Icons.file_download,
                       ),
                     ],
                   ),
