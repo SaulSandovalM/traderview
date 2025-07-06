@@ -7,6 +7,7 @@ class CustomButton extends StatelessWidget {
   final Color? color;
   final IconData? icon;
   final Color? colorText;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -15,6 +16,7 @@ class CustomButton extends StatelessWidget {
     this.color,
     this.icon,
     this.colorText,
+    this.isLoading = false,
   });
 
   @override
@@ -29,29 +31,38 @@ class CustomButton extends StatelessWidget {
         ),
         elevation: 0,
       ),
-      onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (icon != null && text == 'Regresar') ...[
-            Icon(icon, size: 20, color: Colors.black),
-            const SizedBox(width: 8),
-          ],
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colorText ?? Colors.white,
+      onPressed: isLoading ? null : onPressed,
+      child: isLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null && text == 'Regresar') ...[
+                  Icon(icon, size: 20, color: Colors.black),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: colorText ?? Colors.white,
+                  ),
+                ),
+                if (icon != null && text != 'Regresar') ...[
+                  const SizedBox(width: 8),
+                  Icon(icon, size: 20),
+                ],
+              ],
             ),
-          ),
-          if (icon != null && text != 'Regresar') ...[
-            const SizedBox(width: 8),
-            Icon(icon, size: 20),
-          ],
-        ],
-      ),
     );
   }
 }

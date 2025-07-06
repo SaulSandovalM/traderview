@@ -24,6 +24,7 @@ class _CreateCustomerState extends State<CreateCustomer> {
   final _phoneController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   final customerService = CustomerService();
 
@@ -38,7 +39,7 @@ class _CreateCustomerState extends State<CreateCustomer> {
 
   Future<void> saveCustomer() async {
     if (_formKey.currentState!.validate()) {
-      debugPrint('Llegue aqui');
+      setState(() => _isLoading = true);
       try {
         await customerService.createCustomer(
           name: _nameController.text.trim(),
@@ -156,6 +157,7 @@ class _CreateCustomerState extends State<CreateCustomer> {
                       CustomButton(
                         text: 'Guardar cliente',
                         onPressed: saveCustomer,
+                        isLoading: _isLoading,
                       ),
                     ],
                   ),

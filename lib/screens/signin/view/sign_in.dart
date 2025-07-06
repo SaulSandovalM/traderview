@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:traderview/api/auth_service.dart';
-import 'package:traderview/core/utils/input.dart';
-import 'package:traderview/core/utils/primary_btn.dart';
+import 'package:traderview/core/widgets/custom_button.dart';
+import 'package:traderview/core/widgets/custom_input.dart';
 import 'package:traderview/providers/user_model.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,7 +35,6 @@ class _SignInState extends State<SignIn> {
       if (!mounted) return;
       context.go('/');
     } catch (e) {
-      debugPrint('Error de login: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -85,38 +84,24 @@ class _SignInState extends State<SignIn> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Correo electrónico',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              Input(
+              CustomInput(
                 controller: _emailController,
-                hintText: 'correo@email.com',
+                label: 'Correo electrónico',
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa tu correo';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Correo inválido';
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: 30),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Contraseña',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              Input(
+              const SizedBox(height: 20),
+              CustomInput(
                 controller: _passwordController,
-                hintText: '*********',
+                label: 'Contraseña',
                 obscureText: _obscurePassword,
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -147,14 +132,10 @@ class _SignInState extends State<SignIn> {
               const SizedBox(height: 35),
               SizedBox(
                 width: double.infinity,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: PrimaryBtn(
-                    title: 'Iniciar sesión',
-                    onPressed: _login,
-                    isLoading: _isLoading,
-                  ),
+                child: CustomButton(
+                  text: 'Iniciar Sesión',
+                  onPressed: _login,
+                  isLoading: _isLoading,
                 ),
               ),
               const SizedBox(height: 16),
