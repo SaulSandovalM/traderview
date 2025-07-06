@@ -21,6 +21,10 @@ class _CustomersState extends State<Customers> {
   final List<QueryDocumentSnapshot<Map<String, dynamic>>> previousDocs = [];
 
   bool isLastPage = false;
+  String searchTerm = '';
+  bool isSearching = false;
+  List<Map<String, dynamic>> allClientes = [];
+  List<Map<String, dynamic>> filteredClientes = [];
 
   @override
   void initState() {
@@ -70,15 +74,6 @@ class _CustomersState extends State<Customers> {
 
   @override
   Widget build(BuildContext context) {
-    final clientes = currentDocs.map((doc) {
-      final data = doc.data();
-      return {
-        'name': data['name'] ?? '',
-        'email': data['email'] ?? '',
-        'phone': data['phone'] ?? '',
-      };
-    }).toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -104,41 +99,111 @@ class _CustomersState extends State<Customers> {
         ),
         const Divider(),
         const SizedBox(height: 25),
-        const Search(),
-        PaginatedTable<Map<String, dynamic>>(
-          title: 'Clientes',
-          headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
-          items: clientes,
-          onPrevPage: loadPreviousPage,
-          onNextPage: loadNextPage,
-          isLastPage: isLastPage,
-          rowBuilder: (cliente) {
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(flex: 2, child: Text(cliente['name'])),
-                    Expanded(flex: 2, child: Text(cliente['email'])),
-                    Expanded(flex: 2, child: Text(cliente['phone'])),
-                    Expanded(
-                      flex: 1,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.more_vert),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(),
-              ],
-            );
+        Search(
+          onChanged: (value) async {
+            searchTerm = value.trim().toLowerCase();
+
+            if (searchTerm.isEmpty) {
+              setState(() {
+                isSearching = false;
+              });
+            } else {
+              isSearching = true;
+              final results = await customerRepo.getAllClients();
+
+              setState(() {
+                allClientes = results;
+                filteredClientes = allClientes.where((cliente) {
+                  final name = (cliente['name'] ?? '').toLowerCase();
+                  final email = (cliente['email'] ?? '').toLowerCase();
+                  final phone = (cliente['phone'] ?? '').toLowerCase();
+
+                  return name.contains(searchTerm) ||
+                      email.contains(searchTerm) ||
+                      phone.contains(searchTerm);
+                }).toList();
+              });
+            }
           },
         ),
+        ...(isSearching
+            ? [
+                PaginatedTable<Map<String, dynamic>>(
+                  title: 'Resultados de búsqueda',
+                  headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
+                  items: filteredClientes,
+                  isLastPage: true,
+                  rowBuilder: (cliente) {
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(flex: 2, child: Text(cliente['name'])),
+                            Expanded(flex: 2, child: Text(cliente['email'])),
+                            Expanded(flex: 2, child: Text(cliente['phone'])),
+                            Expanded(
+                              flex: 1,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.more_vert),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+                      ],
+                    );
+                  },
+                ),
+              ]
+            : [
+                PaginatedTable<Map<String, dynamic>>(
+                  title: 'Clientes',
+                  headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
+                  items: currentDocs.map((doc) {
+                    final data = doc.data();
+                    return {
+                      'name': data['name'] ?? '',
+                      'email': data['email'] ?? '',
+                      'phone': data['phone'] ?? '',
+                    };
+                  }).toList(),
+                  onNextPage: loadNextPage,
+                  onPrevPage: loadPreviousPage,
+                  isLastPage: isLastPage,
+                  rowBuilder: (cliente) {
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(flex: 2, child: Text(cliente['name'])),
+                            Expanded(flex: 2, child: Text(cliente['email'])),
+                            Expanded(flex: 2, child: Text(cliente['phone'])),
+                            Expanded(
+                              flex: 1,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.more_vert),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+                      ],
+                    );
+                  },
+                ),
+              ]),
       ],
     );
   }

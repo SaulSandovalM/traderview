@@ -90,4 +90,17 @@ class CustomerService {
 
     return querySnapshot.docs;
   }
+
+  Future<List<Map<String, dynamic>>> getAllClients() async {
+    final snapshot = await _firestore.where('role', isEqualTo: 'client').get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return {
+        'name': data['name'] ?? '',
+        'email': data['email'] ?? '',
+        'phone': data['phone'] ?? '',
+      };
+    }).toList();
+  }
 }

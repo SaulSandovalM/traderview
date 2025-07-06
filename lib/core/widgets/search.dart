@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class Search extends StatelessWidget {
-  const Search({super.key});
+  final ValueChanged<String>? onChanged;
+
+  const Search({super.key, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +21,11 @@ class Search extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: const Padding(
-        padding: EdgeInsets.only(left: 5),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 5),
         child: TextField(
-          decoration: InputDecoration(
+          onChanged: onChanged,
+          decoration: const InputDecoration(
             hintText: "Buscar",
             hintStyle: TextStyle(color: Colors.grey),
             prefixIcon: Icon(Icons.search, color: Colors.black, size: 24),
