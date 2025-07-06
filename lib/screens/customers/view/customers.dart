@@ -1,42 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/paginated_table.dart';
 import 'package:traderview/core/widgets/search.dart';
 import 'package:traderview/core/widgets/section_title.dart';
-import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Customers extends StatelessWidget {
+class Customers extends StatefulWidget {
   const Customers({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> clientes = [
-      {
-        "nombre": "Saúl Sandoval Mondragón",
-        "correo": "sauldevelop@gmail.com",
-        "telefono": "7711895701",
-      },
-      {
-        "nombre": "Jorge David López Lucas",
-        "correo": "j.salinas@empresa.com",
-        "telefono": "55 8765 4321",
-      },
-      {
-        "nombre": "Jesus Salvador Leon Avila",
-        "correo": "lucia.r@dominio.com",
-        "telefono": "55 3333 2222",
-      },
-      {
-        "nombre": "Jesus Salvador Leon Avila",
-        "correo": "lucia.r@dominio.com",
-        "telefono": "55 3333 2222",
-      },
-    ];
+  State<Customers> createState() => _CustomersState();
+}
 
-    Future<void> test() {
-      context.go('/create-customer');
-      return Future.value();
+class _CustomersState extends State<Customers> {
+  final CustomerService customerRepo = CustomerService();
+
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> currentDocs = [];
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> previousDocs = [];
+
+  bool isLastPage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadFirstPage();
+  }
+
+  Future<void> loadFirstPage() async {
+    final docs = await customerRepo.getFirstPage();
+    setState(() {
+      currentDocs = docs;
+      previousDocs.clear();
+      isLastPage = docs.length < CustomerService.limitPerPage;
+    });
+  }
+
+  Future<void> loadNextPage() async {
+    if (currentDocs.isEmpty) return;
+
+    final lastDoc = currentDocs.last;
+    final nextDocs = await customerRepo.getNextPage(lastDoc);
+
+    if (nextDocs.isNotEmpty) {
+      setState(() {
+        previousDocs.add(currentDocs.first);
+        currentDocs = nextDocs;
+        isLastPage = nextDocs.length < CustomerService.limitPerPage;
+      });
+    } else {
+      setState(() => isLastPage = true);
     }
+  }
+
+  Future<void> loadPreviousPage() async {
+    if (previousDocs.isEmpty) return;
+
+    final previousLast = previousDocs.removeLast();
+    final result = await customerRepo.getNextPage(previousLast);
+
+    setState(() {
+      currentDocs = result;
+      isLastPage = false;
+    });
+  }
+
+  void _goToCreateCustomer() => context.go('/create-customer');
+
+  @override
+  Widget build(BuildContext context) {
+    final clientes = currentDocs.map((doc) {
+      final data = doc.data();
+      return {
+        'name': data['name'] ?? '',
+        'email': data['email'] ?? '',
+        'phone': data['phone'] ?? '',
+      };
+    }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,9 +88,9 @@ class Customers extends StatelessWidget {
             const SectionTitle(text: 'Gestión de clientes'),
             CustomButton(
               text: 'Crear nuevo cliente',
-              onPressed: test,
+              onPressed: _goToCreateCustomer,
               icon: Icons.add_circle,
-            )
+            ),
           ],
         ),
         const SizedBox(height: 24),
@@ -57,7 +98,8 @@ class Customers extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(0, 20, 0, 40),
           child: Text(
-            'En esta sección podrás dar de alta nuevos usuarios. Registra clientes con su información básica para facilitar el siguimiento de sus inversiones.',
+            'En esta sección podrás dar de alta nuevos usuarios. '
+            'Registra clientes con su información básica para facilitar el seguimiento de sus inversiones.',
           ),
         ),
         const Divider(),
@@ -67,17 +109,17 @@ class Customers extends StatelessWidget {
           title: 'Clientes',
           headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
           items: clientes,
-          // onNextPage: () => cargarSiguientePagina(),
-          // onPrevPage: () => cargarPaginaAnterior(),
-          isLastPage: false,
+          onPrevPage: loadPreviousPage,
+          onNextPage: loadNextPage,
+          isLastPage: isLastPage,
           rowBuilder: (cliente) {
             return Column(
               children: [
                 Row(
                   children: [
-                    Expanded(flex: 2, child: Text(cliente['nombre'] ?? '')),
-                    Expanded(flex: 2, child: Text(cliente['correo'] ?? '')),
-                    Expanded(flex: 2, child: Text(cliente['telefono'] ?? '')),
+                    Expanded(flex: 2, child: Text(cliente['name'])),
+                    Expanded(flex: 2, child: Text(cliente['email'])),
+                    Expanded(flex: 2, child: Text(cliente['phone'])),
                     Expanded(
                       flex: 1,
                       child: Row(

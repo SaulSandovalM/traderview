@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/core/constants/colors.dart';
+import 'package:traderview/core/widgets/breadcrumbs.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/custom_card.dart';
 import 'package:traderview/core/widgets/custom_input.dart';
@@ -17,10 +18,10 @@ class CreateCustomer extends StatefulWidget {
 class _CreateCustomerState extends State<CreateCustomer> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   bool _obscurePassword = true;
 
@@ -71,23 +72,10 @@ class _CreateCustomerState extends State<CreateCustomer> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => context.go('/customers'),
-              child: const Text(
-                'Clientes',
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 5),
-            const Icon(Icons.arrow_forward_ios, size: 12),
-            const SizedBox(width: 5),
-            const Text('Crear cliente'),
-          ],
+        Breadcrumbs(
+          backText: 'Clientes',
+          onPressed: () => context.go('/customers'),
+          text: 'Crear cliente',
         ),
         SizedBox(
           width: double.infinity,
