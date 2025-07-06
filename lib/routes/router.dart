@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
+import 'package:traderview/screens/createcustomer/create_customer.dart';
 import 'package:traderview/screens/customers/view/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/investments/view/investments.dart';
@@ -158,6 +159,10 @@ final router = GoRouter(
         GoRoute(
           path: '/customers',
           builder: (context, state) => const Customers(),
+        ),
+        GoRoute(
+          path: '/create-customer',
+          builder: (context, state) => const CreateCustomer(),
         ),
         GoRoute(
           path: '/reports',

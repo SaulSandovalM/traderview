@@ -3,6 +3,7 @@ import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/paginated_table.dart';
 import 'package:traderview/core/widgets/search.dart';
 import 'package:traderview/core/widgets/section_title.dart';
+import 'package:go_router/go_router.dart';
 
 class Customers extends StatelessWidget {
   const Customers({super.key});
@@ -33,7 +34,7 @@ class Customers extends StatelessWidget {
     ];
 
     Future<void> test() {
-      debugPrint('asdlad');
+      context.go('/create-customer');
       return Future.value();
     }
 
