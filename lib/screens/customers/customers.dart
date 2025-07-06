@@ -16,15 +16,17 @@ class Customers extends StatefulWidget {
 
 class _CustomersState extends State<Customers> {
   final CustomerService customerRepo = CustomerService();
-
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> currentDocs = [];
   final List<QueryDocumentSnapshot<Map<String, dynamic>>> previousDocs = [];
 
-  bool isLastPage = false;
-  String searchTerm = '';
-  bool isSearching = false;
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> currentDocs = [];
   List<Map<String, dynamic>> allClientes = [];
   List<Map<String, dynamic>> filteredClientes = [];
+
+  bool isLastPage = false;
+  bool isLoading = true;
+  bool isSearching = false;
+
+  String searchTerm = '';
 
   @override
   void initState() {
@@ -33,11 +35,13 @@ class _CustomersState extends State<Customers> {
   }
 
   Future<void> loadFirstPage() async {
+    setState(() => isLoading = true);
     final docs = await customerRepo.getFirstPage();
     setState(() {
       currentDocs = docs;
       previousDocs.clear();
       isLastPage = docs.length < CustomerService.limitPerPage;
+      isLoading = false;
     });
   }
 
@@ -74,6 +78,19 @@ class _CustomersState extends State<Customers> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: CircularProgressIndicator(
+            strokeWidth: 6,
+            color: Colors.deepPurpleAccent,
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -146,9 +163,22 @@ class _CustomersState extends State<Customers> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.more_vert),
+                                  PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'edit') {
+                                        final id = allClientes.firstWhere((c) =>
+                                            c['email'] ==
+                                            cliente['email'])['id'];
+                                        context.go('/edit-customer/$id');
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text('Editar'),
+                                      ),
+                                      // Otros valores si se requieren
+                                    ],
                                   ),
                                 ],
                               ),
@@ -189,9 +219,24 @@ class _CustomersState extends State<Customers> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.more_vert),
+                                  PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'edit') {
+                                        final id = currentDocs
+                                            .firstWhere((doc) =>
+                                                doc.data()['email'] ==
+                                                cliente['email'])
+                                            .id;
+                                        context.go('/edit-customer/$id');
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text('Editar'),
+                                      ),
+                                      // Otros valores si se requieren
+                                    ],
                                   ),
                                 ],
                               ),

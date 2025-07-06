@@ -97,10 +97,30 @@ class CustomerService {
     return snapshot.docs.map((doc) {
       final data = doc.data();
       return {
+        'id': data['id'] = doc.id,
         'name': data['name'] ?? '',
         'email': data['email'] ?? '',
         'phone': data['phone'] ?? '',
       };
     }).toList();
+  }
+
+  Future<Map<String, dynamic>> getCustomerById(String id) async {
+    final doc = await _firestore.doc(id).get();
+    return doc.data() ?? {};
+  }
+
+  Future<void> updateCustomer({
+    required String id,
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    await _firestore.doc(id).update({
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }

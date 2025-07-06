@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
-import 'package:traderview/screens/signin/view/sign_in.dart';
+import 'package:traderview/screens/signin/sign_in.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
