@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:traderview/api/auth_service.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/custom_input.dart';
-import 'package:traderview/providers/user_model.dart';
 import 'package:go_router/go_router.dart';
+import 'package:traderview/providers/user_model.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -14,8 +14,8 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -28,7 +28,6 @@ class _SignInState extends State<SignIn> {
         _passwordController.text.trim(),
       );
 
-      // Cargar datos del usuario para el router
       // ignore: use_build_context_synchronously
       await Provider.of<UserModel>(context, listen: false).fetchUserData();
 

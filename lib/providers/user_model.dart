@@ -7,12 +7,10 @@ class UserModel with ChangeNotifier {
   String? _role;
   bool _isLoading = false;
 
-  // Getters públicos
   String? get userId => _userId;
   String? get role => _role;
   bool get isLoading => _isLoading;
 
-  /// Inicializa los datos del usuario desde Firestore
   Future<void> fetchUserData() async {
     _isLoading = true;
     notifyListeners();
@@ -45,7 +43,6 @@ class UserModel with ChangeNotifier {
     }
   }
 
-  /// Permite establecer los valores manualmente si fuese necesario
   void setUserData({String? id, String? role}) {
     _userId = id;
     _role = role;
@@ -53,7 +50,6 @@ class UserModel with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Limpia los datos del usuario (útil al cerrar sesión)
   void clear() {
     _userId = null;
     _role = null;
@@ -61,3 +57,55 @@ class UserModel with ChangeNotifier {
     notifyListeners();
   }
 }
+
+// class UserModel with ChangeNotifier {
+//   String? _userId;
+//   String? _role;
+//   bool _isLoading = false;
+//   bool _isDataLoaded = false;
+
+//   String? get userId => _userId;
+//   String? get role => _role;
+//   bool get isLoading => _isLoading;
+
+//   UserModel() {
+//     FirebaseAuth.instance.authStateChanges().listen((user) {
+//       if (user != null) {
+//         fetchUserData(user.uid);
+//       } else {
+//         clear();
+//       }
+//     });
+//   }
+
+//   Future<void> fetchUserData(String uid) async {
+//     if (_isDataLoaded) return;
+//     _isLoading = true;
+//     notifyListeners();
+
+//     try {
+//       final doc =
+//           await FirebaseFirestore.instance.collection('users').doc(uid).get();
+//       if (doc.exists) {
+//         _userId = uid;
+//         _role = doc.data()?['role'] ?? 'unknown';
+//         _isDataLoaded = true;
+//       } else {
+//         clear();
+//       }
+//     } catch (e) {
+//       clear();
+//     } finally {
+//       _isLoading = false;
+//       notifyListeners();
+//     }
+//   }
+
+//   void clear() {
+//     _userId = null;
+//     _role = null;
+//     _isDataLoaded = false;
+//     _isLoading = false;
+//     notifyListeners();
+//   }
+// }

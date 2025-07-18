@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/core/widgets/custom_list_tile.dart';
+import 'package:traderview/providers/user_model.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/createcustomer/create_customer.dart';
@@ -12,11 +13,13 @@ import 'package:traderview/screens/editcustomer/edit_customer.dart';
 import 'package:traderview/screens/investments/view/investments.dart';
 import 'package:traderview/screens/reports/view/reports.dart';
 import 'package:traderview/screens/signin/sign_in.dart';
+import 'package:provider/provider.dart';
 
 final router = GoRouter(
   initialLocation: '/',
   redirect: (context, state) {
     final user = FirebaseAuth.instance.currentUser;
+
     final isPublic = [
       '/signin',
     ].contains(state.uri.path);
@@ -30,6 +33,7 @@ final router = GoRouter(
     ShellRoute(
       builder: (context, state, child) {
         final user = FirebaseAuth.instance.currentUser;
+        final userModel = context.watch<UserModel>();
 
         return Scaffold(
           backgroundColor: CustomColor.backgroundBase,
@@ -85,28 +89,32 @@ final router = GoRouter(
               ? Drawer(
                   child: ListView(
                     padding: EdgeInsets.zero,
-                    children: const [
-                      DrawerHeader(child: Text('Menú')),
-                      CustomListTile(
-                        route: '/dashboard',
-                        text: 'Inicio',
-                        icon: Icons.dashboard,
-                      ),
-                      CustomListTile(
-                        route: '/customers',
-                        text: 'Clientes',
-                        icon: Icons.group,
-                      ),
-                      CustomListTile(
-                        route: '/investments',
-                        text: 'Inversiones',
-                        icon: Icons.trending_up,
-                      ),
-                      CustomListTile(
-                        route: '/reports',
-                        text: 'Reportes',
-                        icon: Icons.file_download,
-                      ),
+                    children: [
+                      const DrawerHeader(child: Text('Menú')),
+                      if (userModel.role == 'admin') ...[
+                        const CustomListTile(
+                          route: '/dashboard',
+                          text: 'Inicio',
+                          icon: Icons.dashboard,
+                        ),
+                        const CustomListTile(
+                          route: '/customers',
+                          text: 'Clientes',
+                          icon: Icons.group,
+                        ),
+                        const CustomListTile(
+                          route: '/investments',
+                          text: 'Inversiones',
+                          icon: Icons.trending_up,
+                        ),
+                      ],
+                      if (userModel.role == 'client') ...[
+                        const CustomListTile(
+                          route: '/reports',
+                          text: 'Reportes',
+                          icon: Icons.file_download,
+                        ),
+                      ],
                     ],
                   ),
                 )

@@ -31,7 +31,7 @@ class MyAppWrapper extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) {
             final model = UserModel();
-            model.fetchUserData();
+            Future.microtask(() => model.fetchUserData());
             return model;
           },
         ),
