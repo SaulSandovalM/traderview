@@ -85,83 +85,85 @@ class _EditCustomerState extends State<EditCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Breadcrumbs(
-          backText: 'Clientes',
-          onPressed: () => context.go('/customers'),
-          text: 'Editar cliente',
-        ),
-        SizedBox(
-          width: double.infinity,
-          child: CustomCard(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Editar cliente',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Breadcrumbs(
+            backText: 'Clientes',
+            onPressed: () => context.go('/customers'),
+            text: 'Editar cliente',
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: CustomCard(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Editar cliente',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  CustomInput(
-                    controller: _nameController,
-                    label: 'Nombre completo',
-                  ),
-                  const SizedBox(height: 20),
-                  CustomInput(
-                    controller: _emailController,
-                    label: 'Correo electrónico',
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingresa tu correo';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Correo inválido';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  CustomInput(
-                    controller: _phoneController,
-                    label: 'Teléfono',
-                    keyboardType: TextInputType.number,
-                    minLength: 10,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomButton(
-                        text: 'Regresar',
-                        onPressed: () => context.go('/customers'),
-                        icon: Icons.arrow_back,
-                        color: CustomColor.bgButtonTableSecond,
-                        colorText: Colors.black,
-                      ),
-                      CustomButton(
-                        text: 'Actualizar cliente',
-                        onPressed: updateCustomer,
-                        isLoading: _isLoading,
-                      ),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    CustomInput(
+                      controller: _nameController,
+                      label: 'Nombre completo',
+                    ),
+                    const SizedBox(height: 20),
+                    CustomInput(
+                      controller: _emailController,
+                      label: 'Correo electrónico',
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Ingresa tu correo';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Correo inválido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    CustomInput(
+                      controller: _phoneController,
+                      label: 'Teléfono',
+                      keyboardType: TextInputType.number,
+                      minLength: 10,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomButton(
+                          text: 'Regresar',
+                          onPressed: () => context.go('/customers'),
+                          icon: Icons.arrow_back,
+                          color: CustomColor.bgButtonTableSecond,
+                          colorText: Colors.black,
+                        ),
+                        CustomButton(
+                          text: 'Actualizar cliente',
+                          onPressed: updateCustomer,
+                          isLoading: _isLoading,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

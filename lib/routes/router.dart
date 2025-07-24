@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/core/widgets/custom_list_tile.dart';
 import 'package:traderview/providers/user_model.dart';
+import 'package:traderview/screens/addinvestments/add_investments.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/createcustomer/create_customer.dart';
@@ -11,7 +12,7 @@ import 'package:traderview/screens/customers/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/editcustomer/edit_customer.dart';
 import 'package:traderview/screens/investments/view/investments.dart';
-import 'package:traderview/screens/reports/view/reports.dart';
+import 'package:traderview/screens/accountstatements/account_statements.dart';
 import 'package:traderview/screens/signin/sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -32,15 +33,13 @@ final router = GoRouter(
   routes: [
     ShellRoute(
       builder: (context, state, child) {
-        final user = FirebaseAuth.instance.currentUser;
         final userModel = context.watch<UserModel>();
 
         return Scaffold(
           backgroundColor: CustomColor.backgroundBase,
           appBar: AppBar(
             backgroundColor: CustomColor.backgroundBase,
-            elevation: 0,
-            leading: user != null
+            leading: (userModel.role == 'admin' || userModel.role == 'client')
                 ? Builder(
                     builder: (context) => IconButton(
                       icon: const Icon(Icons.menu),
@@ -48,44 +47,26 @@ final router = GoRouter(
                     ),
                   )
                 : null,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (user != null)
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.person),
-                    offset: const Offset(0, 50),
-                    onSelected: (String result) async {
-                      switch (result) {
-                        case 'signin':
-                          context.go('/signin');
-                          break;
-                        case 'profile':
-                          context.go('/profile');
-                          break;
-                        case 'signout':
-                          await FirebaseAuth.instance.signOut();
-                          if (context.mounted) {
-                            context.go('/signin');
-                          }
-                          break;
-                      }
-                    },
-                    itemBuilder: (BuildContext context) => [
-                      const PopupMenuItem<String>(
-                        value: 'profile',
-                        child: Text('Perfil'),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'signout',
-                        child: Text('Cerrar sesión'),
-                      ),
-                    ],
+            title: userModel.role == 'admin' || userModel.role == 'client'
+                ? const Text('TraderView')
+                : null,
+            centerTitle: false,
+            actions: [
+              if (userModel.role == 'admin' || userModel.role == 'client')
+                IconButton(
+                  icon: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Icon(Icons.logout),
                   ),
-              ],
-            ),
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    userModel.clear();
+                    if (context.mounted) context.go('/signin');
+                  },
+                ),
+            ],
           ),
-          drawer: user != null
+          drawer: userModel.role == 'admin' || userModel.role == 'client'
               ? Drawer(
                   child: ListView(
                     padding: EdgeInsets.zero,
@@ -102,16 +83,11 @@ final router = GoRouter(
                           text: 'Clientes',
                           icon: Icons.group,
                         ),
-                        const CustomListTile(
-                          route: '/investments',
-                          text: 'Inversiones',
-                          icon: Icons.trending_up,
-                        ),
                       ],
                       if (userModel.role == 'client') ...[
                         const CustomListTile(
-                          route: '/reports',
-                          text: 'Reportes',
+                          route: '/account_statements',
+                          text: 'Estados de cuenta',
                           icon: Icons.file_download,
                         ),
                       ],
@@ -171,8 +147,16 @@ final router = GoRouter(
           },
         ),
         GoRoute(
-          path: '/reports',
-          builder: (context, state) => const Reports(),
+          path: '/add-investments/:customerId',
+          name: 'add-investments',
+          builder: (context, state) {
+            final customerId = state.pathParameters['customerId']!;
+            return AddInvestments(customerId: customerId);
+          },
+        ),
+        GoRoute(
+          path: '/account_statements',
+          builder: (context, state) => const AccountStatements(),
         ),
         GoRoute(
           path: '/investments',

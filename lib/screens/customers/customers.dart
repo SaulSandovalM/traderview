@@ -91,165 +91,193 @@ class _CustomersState extends State<Customers> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SectionTitle(text: 'Gestión de clientes'),
-            CustomButton(
-              text: 'Crear nuevo cliente',
-              onPressed: _goToCreateCustomer,
-              icon: Icons.add_circle,
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        const Divider(),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(0, 20, 0, 40),
-          child: Text(
-            'En esta sección podrás dar de alta nuevos usuarios. '
-            'Registra clientes con su información básica para facilitar el seguimiento de sus inversiones.',
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const SectionTitle(text: 'Gestión de clientes'),
+              CustomButton(
+                text: 'Crear nuevo cliente',
+                onPressed: _goToCreateCustomer,
+                icon: Icons.add_circle,
+              ),
+            ],
           ),
-        ),
-        const Divider(),
-        const SizedBox(height: 25),
-        Search(
-          onChanged: (value) async {
-            searchTerm = value.trim().toLowerCase();
+          const SizedBox(height: 24),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(0, 20, 0, 40),
+            child: Text(
+              'En esta sección podrás dar de alta nuevos usuarios. '
+              'Registra clientes con su información básica para facilitar el seguimiento de sus inversiones.',
+            ),
+          ),
+          const Divider(),
+          const SizedBox(height: 25),
+          Search(
+            onChanged: (value) async {
+              searchTerm = value.trim().toLowerCase();
 
-            if (searchTerm.isEmpty) {
-              setState(() {
-                isSearching = false;
-              });
-            } else {
-              isSearching = true;
-              final results = await customerRepo.getAllClients();
+              if (searchTerm.isEmpty) {
+                setState(() {
+                  isSearching = false;
+                });
+              } else {
+                isSearching = true;
+                final results = await customerRepo.getAllClients();
 
-              setState(() {
-                allClientes = results;
-                filteredClientes = allClientes.where((cliente) {
-                  final name = (cliente['name'] ?? '').toLowerCase();
-                  final email = (cliente['email'] ?? '').toLowerCase();
-                  final phone = (cliente['phone'] ?? '').toLowerCase();
+                setState(() {
+                  allClientes = results;
+                  filteredClientes = allClientes.where((cliente) {
+                    final name = (cliente['name'] ?? '').toLowerCase();
+                    final email = (cliente['email'] ?? '').toLowerCase();
+                    final phone = (cliente['phone'] ?? '').toLowerCase();
 
-                  return name.contains(searchTerm) ||
-                      email.contains(searchTerm) ||
-                      phone.contains(searchTerm);
-                }).toList();
-              });
-            }
-          },
-        ),
-        ...(isSearching
-            ? [
-                PaginatedTable<Map<String, dynamic>>(
-                  title: 'Resultados de búsqueda',
-                  headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
-                  items: filteredClientes,
-                  isLastPage: true,
-                  rowBuilder: (cliente) {
-                    return Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(flex: 2, child: Text(cliente['name'])),
-                            Expanded(flex: 2, child: Text(cliente['email'])),
-                            Expanded(flex: 2, child: Text(cliente['phone'])),
-                            Expanded(
-                              flex: 1,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'edit') {
+                    return name.contains(searchTerm) ||
+                        email.contains(searchTerm) ||
+                        phone.contains(searchTerm);
+                  }).toList();
+                });
+              }
+            },
+          ),
+          ...(isSearching
+              ? [
+                  PaginatedTable<Map<String, dynamic>>(
+                    title: 'Resultados de búsqueda',
+                    headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
+                    items: filteredClientes,
+                    isLastPage: true,
+                    rowBuilder: (cliente) {
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(flex: 2, child: Text(cliente['name'])),
+                              Expanded(flex: 2, child: Text(cliente['email'])),
+                              Expanded(flex: 2, child: Text(cliente['phone'])),
+                              Expanded(
+                                flex: 1,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    PopupMenuButton<String>(
+                                      icon: const Icon(Icons.more_vert),
+                                      onSelected: (value) {
                                         final id = allClientes.firstWhere((c) =>
                                             c['email'] ==
                                             cliente['email'])['id'];
-                                        context.go('/edit-customer/$id');
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      const PopupMenuItem(
-                                        value: 'edit',
-                                        child: Text('Editar'),
-                                      ),
-                                      // Otros valores si se requieren
-                                    ],
-                                  ),
-                                ],
+                                        if (value == 'edit') {
+                                          context.go('/edit-customer/$id');
+                                        }
+                                        if (value == 'add') {
+                                          context.go('/add-investments/$id');
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'edit',
+                                          child: ListTile(
+                                            leading: Icon(Icons.edit),
+                                            title: Text('Editar'),
+                                          ),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: 'add',
+                                          child: ListTile(
+                                            leading: Icon(Icons.add),
+                                            title: Text('Inversiones'),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                      ],
-                    );
-                  },
-                ),
-              ]
-            : [
-                PaginatedTable<Map<String, dynamic>>(
-                  title: 'Clientes',
-                  headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
-                  items: currentDocs.map((doc) {
-                    final data = doc.data();
-                    return {
-                      'name': data['name'] ?? '',
-                      'email': data['email'] ?? '',
-                      'phone': data['phone'] ?? '',
-                    };
-                  }).toList(),
-                  onNextPage: loadNextPage,
-                  onPrevPage: loadPreviousPage,
-                  isLastPage: isLastPage,
-                  rowBuilder: (cliente) {
-                    return Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(flex: 2, child: Text(cliente['name'])),
-                            Expanded(flex: 2, child: Text(cliente['email'])),
-                            Expanded(flex: 2, child: Text(cliente['phone'])),
-                            Expanded(
-                              flex: 1,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'edit') {
+                            ],
+                          ),
+                          const Divider(),
+                        ],
+                      );
+                    },
+                  ),
+                ]
+              : [
+                  PaginatedTable<Map<String, dynamic>>(
+                    title: 'Clientes',
+                    headers: const ['Nombre', 'Correo', 'Teléfono', 'Acciones'],
+                    items: currentDocs.map((doc) {
+                      final data = doc.data();
+                      return {
+                        'name': data['name'] ?? '',
+                        'email': data['email'] ?? '',
+                        'phone': data['phone'] ?? '',
+                      };
+                    }).toList(),
+                    onNextPage: loadNextPage,
+                    onPrevPage: loadPreviousPage,
+                    isLastPage: isLastPage,
+                    rowBuilder: (cliente) {
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(flex: 2, child: Text(cliente['name'])),
+                              Expanded(flex: 2, child: Text(cliente['email'])),
+                              Expanded(flex: 2, child: Text(cliente['phone'])),
+                              Expanded(
+                                flex: 1,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    PopupMenuButton<String>(
+                                      icon: const Icon(Icons.more_vert),
+                                      onSelected: (value) {
                                         final id = currentDocs
                                             .firstWhere((doc) =>
                                                 doc.data()['email'] ==
                                                 cliente['email'])
                                             .id;
-                                        context.go('/edit-customer/$id');
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      const PopupMenuItem(
-                                        value: 'edit',
-                                        child: Text('Editar'),
-                                      ),
-                                      // Otros valores si se requieren
-                                    ],
-                                  ),
-                                ],
+                                        if (value == 'edit') {
+                                          context.go('/edit-customer/$id');
+                                        }
+                                        if (value == 'add') {
+                                          context.go('/add-investments/$id');
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'edit',
+                                          child: ListTile(
+                                            leading: Icon(Icons.edit),
+                                            title: Text('Editar'),
+                                          ),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: 'add',
+                                          child: ListTile(
+                                            leading: Icon(Icons.add),
+                                            title: Text('Inversiones'),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                      ],
-                    );
-                  },
-                ),
-              ]),
-      ],
+                            ],
+                          ),
+                          const Divider(),
+                        ],
+                      );
+                    },
+                  ),
+                ]),
+        ],
+      ),
     );
   }
 }
