@@ -8,6 +8,11 @@ class CustomerService {
 
   static const int limitPerPage = 4;
 
+  Future<int> getClientUserCount() async {
+    final snapshot = await _firestore.where('role', isEqualTo: 'client').get();
+    return snapshot.docs.length;
+  }
+
   Future<void> createCustomer({
     required String email,
     required String password,
