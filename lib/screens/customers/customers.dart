@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/api/customer_service.dart';
+import 'package:traderview/api/wallet_service.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/paginated_table.dart';
 import 'package:traderview/core/widgets/search.dart';
@@ -15,7 +16,6 @@ class Customers extends StatefulWidget {
 }
 
 class _CustomersState extends State<Customers> {
-  final CustomerService customerRepo = CustomerService();
   final List<QueryDocumentSnapshot<Map<String, dynamic>>> previousDocs = [];
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>> currentDocs = [];
@@ -27,6 +27,9 @@ class _CustomersState extends State<Customers> {
   bool isSearching = false;
 
   String searchTerm = '';
+
+  final CustomerService customerRepo = CustomerService();
+  final WalletService walletService = WalletService();
 
   @override
   void initState() {
@@ -164,35 +167,66 @@ class _CustomersState extends State<Customers> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    PopupMenuButton<String>(
-                                      icon: const Icon(Icons.more_vert),
-                                      onSelected: (value) {
-                                        final id = allClientes.firstWhere((c) =>
-                                            c['email'] ==
-                                            cliente['email'])['id'];
-                                        if (value == 'edit') {
-                                          context.go('/edit-customer/$id');
-                                        }
-                                        if (value == 'add') {
-                                          context.go('/add-investments/$id');
-                                        }
+                                    FutureBuilder<bool>(
+                                      future: walletService.hasWallet(
+                                          currentDocs
+                                              .firstWhere((doc) =>
+                                                  doc.data()['email'] ==
+                                                  cliente['email'])
+                                              .id),
+                                      builder: (context, snapshot) {
+                                        final walletExists =
+                                            snapshot.data ?? false;
+
+                                        return PopupMenuButton<String>(
+                                          icon: const Icon(Icons.more_vert),
+                                          onSelected: (value) {
+                                            final id = currentDocs
+                                                .firstWhere((doc) =>
+                                                    doc.data()['email'] ==
+                                                    cliente['email'])
+                                                .id;
+                                            if (value == 'edit') {
+                                              context.go('/edit-customer/$id');
+                                            }
+                                            if (value == 'wallet') {
+                                              context.go('/create-wallet/$id');
+                                            }
+                                            if (value == 'investment') {
+                                              context
+                                                  .go('/add-investments/$id');
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            const PopupMenuItem(
+                                              value: 'edit',
+                                              child: ListTile(
+                                                leading: Icon(Icons.edit),
+                                                title: Text('Editar'),
+                                              ),
+                                            ),
+                                            if (!walletExists)
+                                              const PopupMenuItem(
+                                                value: 'wallet',
+                                                child: ListTile(
+                                                  leading: Icon(Icons
+                                                      .account_balance_wallet),
+                                                  title: Text('Crear cartera'),
+                                                ),
+                                              ),
+                                            if (walletExists)
+                                              const PopupMenuItem(
+                                                value: 'investment',
+                                                child: ListTile(
+                                                  leading:
+                                                      Icon(Icons.attach_money),
+                                                  title: Text(
+                                                      'Agregar inversiones'),
+                                                ),
+                                              ),
+                                          ],
+                                        );
                                       },
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: 'edit',
-                                          child: ListTile(
-                                            leading: Icon(Icons.edit),
-                                            title: Text('Editar'),
-                                          ),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: 'add',
-                                          child: ListTile(
-                                            leading: Icon(Icons.add),
-                                            title: Text('Inversiones'),
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ],
                                 ),
@@ -233,37 +267,66 @@ class _CustomersState extends State<Customers> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    PopupMenuButton<String>(
-                                      icon: const Icon(Icons.more_vert),
-                                      onSelected: (value) {
-                                        final id = currentDocs
-                                            .firstWhere((doc) =>
-                                                doc.data()['email'] ==
-                                                cliente['email'])
-                                            .id;
-                                        if (value == 'edit') {
-                                          context.go('/edit-customer/$id');
-                                        }
-                                        if (value == 'add') {
-                                          context.go('/add-investments/$id');
-                                        }
+                                    FutureBuilder<bool>(
+                                      future: walletService.hasWallet(
+                                          currentDocs
+                                              .firstWhere((doc) =>
+                                                  doc.data()['email'] ==
+                                                  cliente['email'])
+                                              .id),
+                                      builder: (context, snapshot) {
+                                        final walletExists =
+                                            snapshot.data ?? false;
+
+                                        return PopupMenuButton<String>(
+                                          icon: const Icon(Icons.more_vert),
+                                          onSelected: (value) {
+                                            final id = currentDocs
+                                                .firstWhere((doc) =>
+                                                    doc.data()['email'] ==
+                                                    cliente['email'])
+                                                .id;
+                                            if (value == 'edit') {
+                                              context.go('/edit-customer/$id');
+                                            }
+                                            if (value == 'wallet') {
+                                              context.go('/create-wallet/$id');
+                                            }
+                                            if (value == 'investment') {
+                                              context
+                                                  .go('/add-investments/$id');
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            const PopupMenuItem(
+                                              value: 'edit',
+                                              child: ListTile(
+                                                leading: Icon(Icons.edit),
+                                                title: Text('Editar'),
+                                              ),
+                                            ),
+                                            if (!walletExists)
+                                              const PopupMenuItem(
+                                                value: 'wallet',
+                                                child: ListTile(
+                                                  leading: Icon(Icons
+                                                      .account_balance_wallet),
+                                                  title: Text('Crear cartera'),
+                                                ),
+                                              ),
+                                            if (walletExists)
+                                              const PopupMenuItem(
+                                                value: 'investment',
+                                                child: ListTile(
+                                                  leading: Icon(
+                                                      Icons.waterfall_chart),
+                                                  title: Text(
+                                                      'Agregar inversiones'),
+                                                ),
+                                              ),
+                                          ],
+                                        );
                                       },
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: 'edit',
-                                          child: ListTile(
-                                            leading: Icon(Icons.edit),
-                                            title: Text('Editar'),
-                                          ),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: 'add',
-                                          child: ListTile(
-                                            leading: Icon(Icons.add),
-                                            title: Text('Inversiones'),
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ],
                                 ),
