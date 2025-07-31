@@ -296,6 +296,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
             CustomInput(
               controller: _nameController,
               label: 'Nombre completo',
+              readOnly: true,
             ),
             const SizedBox(height: 24),
             Row(
@@ -304,6 +305,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _accountNumberController,
                     label: 'Número de cuenta',
+                    readOnly: true,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(10),
@@ -318,6 +320,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _currencyController,
                     label: 'Moneda',
+                    readOnly: true,
                     validator: (value) => value == null || value.isEmpty
                         ? 'Campo requerido'
                         : null,
@@ -332,6 +335,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _accountTypeController,
                     label: 'Tipo de cuenta',
+                    readOnly: true,
                     validator: (value) => value == null || value.isEmpty
                         ? 'Campo requerido'
                         : null,
@@ -342,6 +346,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _companyController,
                     label: 'Compañía',
+                    readOnly: true,
                     validator: (value) => value == null || value.isEmpty
                         ? 'Campo requerido'
                         : null,

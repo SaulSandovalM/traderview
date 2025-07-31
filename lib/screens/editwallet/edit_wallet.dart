@@ -9,16 +9,17 @@ import 'package:traderview/core/widgets/custom_card.dart';
 import 'package:traderview/core/widgets/custom_input.dart';
 import 'package:go_router/go_router.dart';
 
-class CreateWallet extends StatefulWidget {
+class EditWallet extends StatefulWidget {
   final String? customerId;
+  final String? walletId;
 
-  const CreateWallet({super.key, this.customerId});
+  const EditWallet({super.key, this.customerId, this.walletId});
 
   @override
-  State<CreateWallet> createState() => _CreateWalletState();
+  State<EditWallet> createState() => _EditWalletState();
 }
 
-class _CreateWalletState extends State<CreateWallet> {
+class _EditWalletState extends State<EditWallet> {
   final _formKey = GlobalKey<FormState>();
 
   // bool _isLoading = false;
@@ -35,29 +36,61 @@ class _CreateWalletState extends State<CreateWallet> {
   @override
   void initState() {
     super.initState();
-    if (widget.customerId != null) {
-      loadCustomerData();
+    if (widget.customerId != null && widget.walletId != null) {
+      loadWalletData();
+    }
+  }
+
+  Future<void> loadWalletData() async {
+    try {
+      final data = await _walletService.getWalletById(
+        widget.customerId!,
+        widget.walletId!,
+      );
+      if (!mounted) return;
+      _nameController.text = data['name'] ?? '';
+      _accountNumberController.text = data['accountNumber'] ?? '';
+      _currencyController.text = data['currency'] ?? '';
+      _accountTypeController.text = data['accountType'] ?? '';
+      _companyController.text = data['company'] ?? '';
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar cartera: $e')),
+      );
     }
   }
 
   void _saveForm() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final createWallet = {
+        final walletData = {
           'name': _nameController.text,
           'accountNumber': _accountNumberController.text,
           'currency': _currencyController.text,
           'accountType': _accountTypeController.text,
           'company': _companyController.text,
+          // 'updatedAt': FieldValue.serverTimestamp(),
         };
-        await _walletService.saveNewWallet(
-          userId: widget.customerId!,
-          data: createWallet,
-        );
+
+        if (widget.walletId != null) {
+          await _walletService.updateWallet(
+              customerId: widget.customerId!,
+              walletId: widget.walletId!,
+              data: walletData);
+        } else {
+          // Creación nueva
+          await _walletService.saveNewWallet(
+            userId: widget.customerId!,
+            data: walletData,
+          );
+        }
+
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Se ha creado la cartera correctamente.'),
+          SnackBar(
+            content: Text(widget.walletId != null
+                ? 'Cartera actualizada correctamente.'
+                : 'Se ha creado la cartera correctamente.'),
           ),
         );
         context.go('/customers');
@@ -66,23 +99,6 @@ class _CreateWalletState extends State<CreateWallet> {
           SnackBar(content: Text('Error al guardar: $e')),
         );
       }
-    }
-  }
-
-  Future<void> loadCustomerData() async {
-    // setState(() => _isLoading = true);
-    try {
-      final data = await customerService.getCustomerById(widget.customerId!);
-
-      if (!mounted) return;
-
-      _nameController.text = data['name'] ?? '';
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar datos: $e')),
-      );
-    } finally {
-      // setState(() => _isLoading = false);
     }
   }
 

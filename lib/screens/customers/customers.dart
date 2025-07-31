@@ -277,7 +277,7 @@ class _CustomersState extends State<Customers> {
                                       builder: (context, snapshot) {
                                         final walletExists =
                                             snapshot.data ?? false;
-
+                                        debugPrint(snapshot.toString());
                                         return PopupMenuButton<String>(
                                           icon: const Icon(Icons.more_vert),
                                           onSelected: (value) {
@@ -291,6 +291,9 @@ class _CustomersState extends State<Customers> {
                                             }
                                             if (value == 'wallet') {
                                               context.go('/create-wallet/$id');
+                                            }
+                                            if (value == 'edit-wallet') {
+                                              context.go('/edit-wallet/$id');
                                             }
                                             if (value == 'investment') {
                                               context
@@ -312,6 +315,15 @@ class _CustomersState extends State<Customers> {
                                                   leading: Icon(Icons
                                                       .account_balance_wallet),
                                                   title: Text('Crear cartera'),
+                                                ),
+                                              ),
+                                            if (walletExists)
+                                              const PopupMenuItem(
+                                                value: 'edit-wallet',
+                                                child: ListTile(
+                                                  leading: Icon(Icons
+                                                      .account_balance_wallet),
+                                                  title: Text('Editar cartera'),
                                                 ),
                                               ),
                                             if (walletExists)

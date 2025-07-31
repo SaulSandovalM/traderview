@@ -8,10 +8,11 @@ import 'package:traderview/screens/addinvestments/add_investments.dart';
 import 'package:traderview/screens/authwrapper/auth_wrapper.dart';
 import 'package:traderview/screens/clientdashboard/view/client_dashboard.dart';
 import 'package:traderview/screens/createcustomer/create_customer.dart';
-import 'package:traderview/screens/createwallet/create_wallet.dart';
+// import 'package:traderview/screens/createwallet/create_wallet.dart';
 import 'package:traderview/screens/customers/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/editcustomer/edit_customer.dart';
+import 'package:traderview/screens/editwallet/edit_wallet.dart';
 import 'package:traderview/screens/investments/view/investments.dart';
 import 'package:traderview/screens/accountstatements/account_statements.dart';
 import 'package:traderview/screens/signin/sign_in.dart';
@@ -152,7 +153,16 @@ final router = GoRouter(
           name: 'create-wallet',
           builder: (context, state) {
             final customerId = state.pathParameters['customerId']!;
-            return CreateWallet(customerId: customerId);
+            final walletId = state.pathParameters['walletId']!;
+            return EditWallet(customerId: customerId, walletId: walletId);
+          },
+        ),
+        GoRoute(
+          path: '/edit-wallet/:customerId/:walletId',
+          builder: (context, state) {
+            final customerId = state.pathParameters['customerId']!;
+            final walletId = state.pathParameters['walletId']!;
+            return EditWallet(customerId: customerId, walletId: walletId);
           },
         ),
         GoRoute(
