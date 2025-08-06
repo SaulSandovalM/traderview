@@ -42,4 +42,32 @@ class WalletService {
         .doc(walletId)
         .update(data);
   }
+
+  Future<String?> getWalletIdForCustomer(String customerId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('wallets')
+        .where('customerId', isEqualTo: customerId)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first.id;
+    } else {
+      return null;
+    }
+  }
+
+  Future<String?> getWalletId(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('wallet')
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first.id;
+    }
+    return null;
+  }
 }

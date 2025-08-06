@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:traderview/api/customer_service.dart';
+// import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/api/wallet_service.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/core/widgets/breadcrumbs.dart';
@@ -22,26 +22,29 @@ class EditWallet extends StatefulWidget {
 class _EditWalletState extends State<EditWallet> {
   final _formKey = GlobalKey<FormState>();
 
-  // bool _isLoading = false;
-
   final _nameController = TextEditingController();
   final _accountNumberController = TextEditingController();
   final _currencyController = TextEditingController();
   final _accountTypeController = TextEditingController();
   final _companyController = TextEditingController();
 
-  final customerService = CustomerService();
   final _walletService = WalletService();
+
+  bool _isLoading = false;
+  bool _isSaving = false;
+
+  bool get isEditing => widget.walletId != null;
 
   @override
   void initState() {
     super.initState();
-    if (widget.customerId != null && widget.walletId != null) {
+    if (widget.customerId != null && isEditing) {
       loadWalletData();
     }
   }
 
   Future<void> loadWalletData() async {
+    setState(() => _isLoading = true);
     try {
       final data = await _walletService.getWalletById(
         widget.customerId!,
@@ -54,64 +57,80 @@ class _EditWalletState extends State<EditWallet> {
       _accountTypeController.text = data['accountType'] ?? '';
       _companyController.text = data['company'] ?? '';
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar cartera: $e')),
+        SnackBar(content: Text('Error al cargar la cartera: $e')),
       );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _saveForm() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final walletData = {
-          'name': _nameController.text,
-          'accountNumber': _accountNumberController.text,
-          'currency': _currencyController.text,
-          'accountType': _accountTypeController.text,
-          'company': _companyController.text,
-          // 'updatedAt': FieldValue.serverTimestamp(),
-        };
+  Future<void> _saveForm() async {
+    if (!_formKey.currentState!.validate()) return;
 
-        if (widget.walletId != null) {
-          await _walletService.updateWallet(
-              customerId: widget.customerId!,
-              walletId: widget.walletId!,
-              data: walletData);
-        } else {
-          // Creación nueva
-          await _walletService.saveNewWallet(
-            userId: widget.customerId!,
-            data: walletData,
-          );
-        }
+    setState(() => _isSaving = true);
 
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.walletId != null
-                ? 'Cartera actualizada correctamente.'
-                : 'Se ha creado la cartera correctamente.'),
-          ),
+    final walletData = {
+      'name': _nameController.text,
+      'accountNumber': _accountNumberController.text,
+      'currency': _currencyController.text,
+      'accountType': _accountTypeController.text,
+      'company': _companyController.text,
+    };
+
+    try {
+      if (isEditing) {
+        await _walletService.updateWallet(
+          customerId: widget.customerId!,
+          walletId: widget.walletId!,
+          data: walletData,
         );
-        context.go('/customers');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+      } else {
+        await _walletService.saveNewWallet(
+          userId: widget.customerId!,
+          data: walletData,
         );
       }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isEditing
+              ? 'Cartera actualizada correctamente.'
+              : 'Cartera creada exitosamente.'),
+        ),
+      );
+
+      context.go('/customers');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return SingleChildScrollView(
       child: Column(
         children: [
           Breadcrumbs(
-            backText: 'Billetera',
+            backText: 'Clientes',
             onPressed: () => context.go('/customers'),
-            text: 'Agregar inversiones',
+            text: isEditing ? 'Editar cartera' : 'Crear cartera',
           ),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: CustomCard(
@@ -119,72 +138,67 @@ class _EditWalletState extends State<EditWallet> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    Column(
+                    CustomInput(
+                      controller: _nameController,
+                      label: 'Nombre completo',
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Campo requerido'
+                          : null,
+                      readOnly: true,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
                       children: [
-                        CustomInput(
-                          controller: _nameController,
-                          label: 'Nombre completo',
+                        Expanded(
+                          child: CustomInput(
+                            controller: _accountNumberController,
+                            label: 'Número de cuenta',
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Campo requerido'
+                                : null,
+                          ),
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomInput(
-                                controller: _accountNumberController,
-                                label: 'Número de cuenta',
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10),
-                                ],
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              child: CustomInput(
-                                controller: _currencyController,
-                                label: 'Moneda',
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: CustomInput(
+                            controller: _currencyController,
+                            label: 'Moneda',
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Campo requerido'
+                                : null,
+                          ),
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomInput(
-                                controller: _accountTypeController,
-                                label: 'Tipo de cuenta',
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              child: CustomInput(
-                                controller: _companyController,
-                                label: 'Compañía',
-                                validator: (value) =>
-                                    value == null || value.isEmpty
-                                        ? 'Campo requerido'
-                                        : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomInput(
+                            controller: _accountTypeController,
+                            label: 'Tipo de cuenta',
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Campo requerido'
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          child: CustomInput(
+                            controller: _companyController,
+                            label: 'Compañía',
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Campo requerido'
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -196,8 +210,13 @@ class _EditWalletState extends State<EditWallet> {
                           colorText: Colors.black,
                         ),
                         CustomButton(
-                          text: 'Guardar',
-                          onPressed: () => _saveForm(),
+                          text: _isSaving
+                              ? 'Guardando...'
+                              : (isEditing ? 'Actualizar' : 'Crear'),
+                          onPressed: () {
+                            _isSaving ? null : _saveForm();
+                          },
+                          icon: _isSaving ? Icons.hourglass_top : Icons.save,
                         ),
                       ],
                     ),

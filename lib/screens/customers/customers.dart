@@ -267,37 +267,41 @@ class _CustomersState extends State<Customers> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    FutureBuilder<bool>(
-                                      future: walletService.hasWallet(
-                                          currentDocs
-                                              .firstWhere((doc) =>
-                                                  doc.data()['email'] ==
-                                                  cliente['email'])
-                                              .id),
+                                    FutureBuilder<String?>(
+                                      future: walletService.getWalletId(
+                                        currentDocs
+                                            .firstWhere((doc) =>
+                                                doc.data()['email'] ==
+                                                cliente['email'])
+                                            .id,
+                                      ),
                                       builder: (context, snapshot) {
-                                        final walletExists =
-                                            snapshot.data ?? false;
-                                        debugPrint(snapshot.toString());
+                                        final walletId = snapshot.data;
+
                                         return PopupMenuButton<String>(
                                           icon: const Icon(Icons.more_vert),
                                           onSelected: (value) {
-                                            final id = currentDocs
+                                            final customerId = currentDocs
                                                 .firstWhere((doc) =>
                                                     doc.data()['email'] ==
                                                     cliente['email'])
                                                 .id;
                                             if (value == 'edit') {
-                                              context.go('/edit-customer/$id');
+                                              context.go(
+                                                  '/edit-customer/$customerId');
                                             }
                                             if (value == 'wallet') {
-                                              context.go('/create-wallet/$id');
+                                              context.go(
+                                                  '/create-wallet/$customerId');
                                             }
-                                            if (value == 'edit-wallet') {
-                                              context.go('/edit-wallet/$id');
+                                            if (value == 'edit-wallet' &&
+                                                walletId != null) {
+                                              context.go(
+                                                  '/wallet/$customerId/$walletId');
                                             }
                                             if (value == 'investment') {
-                                              context
-                                                  .go('/add-investments/$id');
+                                              context.go(
+                                                  '/add-investments/$customerId');
                                             }
                                           },
                                           itemBuilder: (context) => [
@@ -308,7 +312,7 @@ class _CustomersState extends State<Customers> {
                                                 title: Text('Editar'),
                                               ),
                                             ),
-                                            if (!walletExists)
+                                            if (walletId == null)
                                               const PopupMenuItem(
                                                 value: 'wallet',
                                                 child: ListTile(
@@ -317,7 +321,7 @@ class _CustomersState extends State<Customers> {
                                                   title: Text('Crear cartera'),
                                                 ),
                                               ),
-                                            if (walletExists)
+                                            if (walletId != null)
                                               const PopupMenuItem(
                                                 value: 'edit-wallet',
                                                 child: ListTile(
@@ -326,7 +330,7 @@ class _CustomersState extends State<Customers> {
                                                   title: Text('Editar cartera'),
                                                 ),
                                               ),
-                                            if (walletExists)
+                                            if (walletId != null)
                                               const PopupMenuItem(
                                                 value: 'investment',
                                                 child: ListTile(
@@ -339,7 +343,7 @@ class _CustomersState extends State<Customers> {
                                           ],
                                         );
                                       },
-                                    ),
+                                    )
                                   ],
                                 ),
                               ),
