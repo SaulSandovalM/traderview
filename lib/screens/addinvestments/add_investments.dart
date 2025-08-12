@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/custom_card.dart';
 import 'package:traderview/core/widgets/custom_input.dart';
+import 'package:traderview/core/widgets/paginated_table.dart';
 
 class AddInvestments extends StatefulWidget {
   final String? customerId;
@@ -59,11 +60,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    final formatted =
-        '${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')} '
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-    _timeController.text = formatted;
+    _nameController.text = 'nombre';
+    _accountNumberController.text = '1234567890';
+    _currencyController.text = 'USD';
+    _accountTypeController.text = 'Cuenta de Inversión';
+    _companyController.text = 'Compañía de Inversión';
     if (widget.customerId != null) {
       loadCustomerData();
     }
@@ -288,6 +289,14 @@ class _AddInvestmentsState extends State<AddInvestments> {
     );
   }
 
+  final columns = [
+    {'title': 'Hora', 'flex': 1},
+    {'title': 'Trato', 'flex': 1},
+    {'title': 'Beneficio', 'flex': 1},
+    {'title': 'Equilibrar', 'flex': 1},
+    {'title': 'Comentario', 'flex': 2},
+  ];
+
   Widget _buildStepContent() {
     switch (_currentStep) {
       case 0:
@@ -359,6 +368,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
         );
       case 1:
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -368,7 +378,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Hora',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _dealController,
@@ -386,7 +396,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Símbolo',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _typeController,
@@ -404,7 +414,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Dirección',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _volumeController,
@@ -422,7 +432,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Precio',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _orderController,
@@ -440,7 +450,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Comisión',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _feeController,
@@ -458,7 +468,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Intercambio',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _profitController,
@@ -476,7 +486,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     label: 'Equilibrar',
                   ),
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomInput(
                     controller: _commentController,
@@ -491,12 +501,48 @@ class _AddInvestmentsState extends State<AddInvestments> {
               child: const Text('Agregar Movimiento'),
             ),
             const SizedBox(height: 10),
-            ...movements.map(
-              (m) => ListTile(
-                title: Text('Hora: ${m['time']} - Trato: ${m['deal']}'),
-                subtitle: Text('${m['comment']} - ${m['balance']}'),
-              ),
-            ),
+            PaginatedTable<Map<String, dynamic>>(
+              title: 'Movimientos',
+              headers: const [
+                'Hora',
+                'Trato',
+                'Beneficio',
+                'Equilibrar',
+                'Comentario'
+              ],
+              items: movements,
+              rowBuilder: (movimiento) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(movimiento['time'] ?? ''),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(movimiento['deal'] ?? ''),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(movimiento['profit'] ?? ''),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(movimiento['balance'] ?? ''),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['comment'] ?? ''),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                  ],
+                );
+              },
+            )
           ],
         );
       case 2:
