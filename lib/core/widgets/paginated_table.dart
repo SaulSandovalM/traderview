@@ -9,7 +9,9 @@ class PaginatedTable<T> extends StatelessWidget {
   final Widget Function(T item) rowBuilder;
   final VoidCallback? onNextPage;
   final VoidCallback? onPrevPage;
+  final bool showTitle;
   final bool isLastPage;
+  final bool differentFlex;
 
   const PaginatedTable({
     super.key,
@@ -19,7 +21,9 @@ class PaginatedTable<T> extends StatelessWidget {
     required this.rowBuilder,
     this.onNextPage,
     this.onPrevPage,
+    this.showTitle = true,
     this.isLastPage = false,
+    this.differentFlex = false,
   });
 
   @override
@@ -28,8 +32,8 @@ class PaginatedTable<T> extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderWithControls(),
-          const SizedBox(height: 24),
+          if (showTitle) _buildHeaderWithControls(),
+          if (showTitle) const SizedBox(height: 24),
           _buildTableHeader(),
           const Divider(),
           ...items.map(rowBuilder),
@@ -87,11 +91,17 @@ class PaginatedTable<T> extends StatelessWidget {
       children: [
         for (int i = 0; i < headers.length; i++)
           Expanded(
-            flex: i == headers.length - 1 ? 1 : 2,
+            flex: differentFlex
+                ? 2
+                : i == headers.length - 1
+                    ? 1
+                    : 2,
             child: Row(
-              mainAxisAlignment: i == headers.length - 1
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.start,
+              mainAxisAlignment: differentFlex
+                  ? MainAxisAlignment.start
+                  : i == headers.length - 1
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
               children: [
                 Text(
                   headers[i],

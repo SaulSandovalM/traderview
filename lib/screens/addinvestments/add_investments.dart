@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/api/investments_service.dart';
 import 'package:traderview/core/constants/colors.dart';
+import 'package:traderview/core/formatters/decimal_text_input.dart';
 import 'package:traderview/core/widgets/breadcrumbs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
@@ -57,6 +58,8 @@ class _AddInvestmentsState extends State<AddInvestments> {
   final customerService = CustomerService();
   final _investmentService = InvestmentService();
 
+  bool _isFormValid = false;
+
   @override
   void initState() {
     super.initState();
@@ -65,8 +68,49 @@ class _AddInvestmentsState extends State<AddInvestments> {
     _currencyController.text = 'USD';
     _accountTypeController.text = 'Cuenta de Inversión';
     _companyController.text = 'Compañía de Inversión';
+    for (var controller in [
+      _timeController,
+      _dealController,
+      _symbolController,
+      _typeController,
+      _directionController,
+      _volumeController,
+      _priceController,
+      _orderController,
+      _commissionController,
+      _feeController,
+      _swapController,
+      _profitController,
+      _balanceController,
+      _commentController,
+    ]) {
+      controller.addListener(_validateForm);
+    }
     if (widget.customerId != null) {
       loadCustomerData();
+    }
+  }
+
+  void _validateForm() {
+    final isValid = _timeController.text.isNotEmpty &&
+        _dealController.text.isNotEmpty &&
+        _symbolController.text.isNotEmpty &&
+        _typeController.text.isNotEmpty &&
+        _directionController.text.isNotEmpty &&
+        _volumeController.text.isNotEmpty &&
+        _priceController.text.isNotEmpty &&
+        _orderController.text.isNotEmpty &&
+        _commissionController.text.isNotEmpty &&
+        _feeController.text.isNotEmpty &&
+        _swapController.text.isNotEmpty &&
+        _profitController.text.isNotEmpty &&
+        _balanceController.text.isNotEmpty &&
+        _commentController.text.isNotEmpty;
+
+    if (_isFormValid != isValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
     }
   }
 
@@ -131,7 +175,7 @@ class _AddInvestmentsState extends State<AddInvestments> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Estado de cuenta guardado correctamente.'),
+            content: Text('Inversiones guardadas correctamente.'),
           ),
         );
 
@@ -289,14 +333,6 @@ class _AddInvestmentsState extends State<AddInvestments> {
     );
   }
 
-  final columns = [
-    {'title': 'Hora', 'flex': 1},
-    {'title': 'Trato', 'flex': 1},
-    {'title': 'Beneficio', 'flex': 1},
-    {'title': 'Equilibrar', 'flex': 1},
-    {'title': 'Comentario', 'flex': 2},
-  ];
-
   Widget _buildStepContent() {
     switch (_currentStep) {
       case 0:
@@ -383,6 +419,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _dealController,
                     label: 'Trato',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
               ],
@@ -419,6 +460,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _volumeController,
                     label: 'Volumen',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
               ],
@@ -430,6 +478,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _priceController,
                     label: 'Precio',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -437,6 +492,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _orderController,
                     label: 'Orden',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
               ],
@@ -448,6 +510,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _commissionController,
                     label: 'Comisión',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -455,6 +524,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _feeController,
                     label: 'Honorario',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
               ],
@@ -466,6 +542,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _swapController,
                     label: 'Intercambio',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -473,6 +556,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _profitController,
                     label: 'Beneficio',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
               ],
@@ -484,6 +574,13 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _balanceController,
                     label: 'Equilibrar',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -496,13 +593,16 @@ class _AddInvestmentsState extends State<AddInvestments> {
               ],
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _addMovement,
-              child: const Text('Agregar Movimiento'),
+            CustomButton(
+              text: 'Agregar movimiento',
+              onPressed: _isFormValid ? _addMovement : () {},
+              color: Colors.deepPurple,
             ),
             const SizedBox(height: 10),
             PaginatedTable<Map<String, dynamic>>(
-              title: 'Movimientos',
+              title: '',
+              showTitle: false,
+              differentFlex: true,
               headers: const [
                 'Hora',
                 'Trato',
@@ -517,24 +617,35 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     Row(
                       children: [
                         Expanded(
-                          flex: 1,
-                          child: Text(movimiento['time'] ?? ''),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(movimiento['deal'] ?? ''),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(movimiento['profit'] ?? ''),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(movimiento['balance'] ?? ''),
+                          flex: 2,
+                          child: Text(movimiento['time']),
                         ),
                         Expanded(
                           flex: 2,
-                          child: Text(movimiento['comment'] ?? ''),
+                          child: Text(movimiento['deal']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['profit']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['balance']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  movimiento['comment'],
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -554,9 +665,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _netProfitController,
                     label: 'Beneficio Neto Total',
-                    keyboardType: TextInputType.number,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
                       LengthLimitingTextInputFormatter(10),
                     ],
                     validator: (value) => value == null || value.isEmpty
@@ -569,9 +682,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _grossProfitController,
                     label: 'Beneficio Bruto',
-                    keyboardType: TextInputType.number,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
                       LengthLimitingTextInputFormatter(10),
                     ],
                     validator: (value) => value == null || value.isEmpty
@@ -588,9 +703,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _grossLossController,
                     label: 'Pérdida Bruta',
-                    keyboardType: TextInputType.number,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
                       LengthLimitingTextInputFormatter(10),
                     ],
                     validator: (value) => value == null || value.isEmpty
@@ -603,9 +720,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
                   child: CustomInput(
                     controller: _gainFactorController,
                     label: 'Factor de Ganancia',
-                    keyboardType: TextInputType.number,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
                       LengthLimitingTextInputFormatter(10),
                     ],
                     validator: (value) => value == null || value.isEmpty
@@ -619,9 +738,11 @@ class _AddInvestmentsState extends State<AddInvestments> {
             CustomInput(
               controller: _expectedPaymentController,
               label: 'Pago Esperado',
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                DecimalTextInputFormatter(decimalRange: 2),
                 LengthLimitingTextInputFormatter(10),
               ],
               validator: (value) =>
