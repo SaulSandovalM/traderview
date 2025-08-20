@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/api/investments_service.dart';
+import 'package:traderview/api/wallet_service.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/core/formatters/decimal_text_input.dart';
+// import 'package:traderview/core/helpers/pdf_helper.dart';
 import 'package:traderview/core/widgets/breadcrumbs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/custom_card.dart';
 import 'package:traderview/core/widgets/custom_input.dart';
 import 'package:traderview/core/widgets/paginated_table.dart';
+// import 'dart:io';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class AddInvestments extends StatefulWidget {
   final String? customerId;
+  final String? walletId;
 
-  const AddInvestments({super.key, this.customerId});
+  const AddInvestments({super.key, this.customerId, this.walletId});
 
   @override
   State<AddInvestments> createState() => _AddInvestmentsState();
@@ -23,8 +28,6 @@ class AddInvestments extends StatefulWidget {
 class _AddInvestmentsState extends State<AddInvestments> {
   int _currentStep = 0;
   final _formKey = GlobalKey<FormState>();
-
-  // bool _isLoading = false;
 
   final _nameController = TextEditingController();
   final _accountNumberController = TextEditingController();
@@ -55,19 +58,15 @@ class _AddInvestmentsState extends State<AddInvestments> {
   final _balanceController = TextEditingController();
   final _commentController = TextEditingController();
 
-  final customerService = CustomerService();
   final _investmentService = InvestmentService();
+  final _walletService = WalletService();
 
   bool _isFormValid = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController.text = 'nombre';
-    _accountNumberController.text = '1234567890';
-    _currencyController.text = 'USD';
-    _accountTypeController.text = 'Cuenta de Inversión';
-    _companyController.text = 'Compañía de Inversión';
     for (var controller in [
       _timeController,
       _dealController,
@@ -86,8 +85,31 @@ class _AddInvestmentsState extends State<AddInvestments> {
     ]) {
       controller.addListener(_validateForm);
     }
-    if (widget.customerId != null) {
-      loadCustomerData();
+    if (widget.customerId != null && widget.walletId != null) {
+      loadWalletData();
+    }
+  }
+
+  Future<void> loadWalletData() async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await _walletService.getWalletById(
+        widget.customerId!,
+        widget.walletId!,
+      );
+      if (!mounted) return;
+      _nameController.text = data['name'] ?? '';
+      _accountNumberController.text = data['accountNumber'] ?? '';
+      _currencyController.text = data['currency'] ?? '';
+      _accountTypeController.text = data['accountType'] ?? '';
+      _companyController.text = data['company'] ?? '';
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar la cartera: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -188,25 +210,29 @@ class _AddInvestmentsState extends State<AddInvestments> {
     }
   }
 
-  Future<void> loadCustomerData() async {
-    // setState(() => _isLoading = true);
-    try {
-      final data = await customerService.getCustomerById(widget.customerId!);
+  Future<void> pdfHelper() async {
+    final pdf = pw.Document();
 
-      if (!mounted) return;
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) => pw.Center(
+          child: pw.Text('Hello World!'),
+        ),
+      ),
+    );
 
-      _nameController.text = data['name'] ?? '';
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar datos: $e')),
-      );
-    } finally {
-      // setState(() => _isLoading = false);
-    }
+    // final file = File('example.pdf');
+    await Printing.sharePdf(bytes: await pdf.save(), filename: 'example.pdf');
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -241,8 +267,31 @@ class _AddInvestmentsState extends State<AddInvestments> {
                           text: _currentStep < 3 ? 'Siguiente' : 'Guardar',
                           onPressed: () {
                             if (_currentStep < 3) {
-                              if (_currentStep == 1 ||
-                                  _formKey.currentState!.validate()) {
+                              bool canProceed = false;
+                              switch (_currentStep) {
+                                case 0:
+                                  canProceed =
+                                      _formKey.currentState!.validate();
+                                  break;
+                                case 1:
+                                  if (movements.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Debe agregar al menos un movimiento',
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    canProceed = true;
+                                  }
+                                  break;
+                                case 2:
+                                  canProceed =
+                                      _formKey.currentState!.validate();
+                                  break;
+                              }
+                              if (canProceed) {
                                 setState(() => _currentStep++);
                               }
                             } else {
@@ -351,13 +400,6 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     controller: _accountNumberController,
                     label: 'Número de cuenta',
                     readOnly: true,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Campo requerido'
-                        : null,
                   ),
                 ),
                 const SizedBox(width: 24),
@@ -366,9 +408,6 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     controller: _currencyController,
                     label: 'Moneda',
                     readOnly: true,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Campo requerido'
-                        : null,
                   ),
                 ),
               ],
@@ -381,9 +420,6 @@ class _AddInvestmentsState extends State<AddInvestments> {
                     controller: _accountTypeController,
                     label: 'Tipo de cuenta',
                     readOnly: true,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Campo requerido'
-                        : null,
                   ),
                 ),
                 const SizedBox(width: 24),
@@ -602,24 +638,20 @@ class _AddInvestmentsState extends State<AddInvestments> {
             PaginatedTable<Map<String, dynamic>>(
               title: '',
               showTitle: false,
-              differentFlex: true,
               headers: const [
-                'Hora',
                 'Trato',
                 'Beneficio',
                 'Equilibrar',
-                'Comentario'
+                'Comentario',
+                'Acciones'
               ],
               items: movements,
               rowBuilder: (movimiento) {
+                final index = movements.indexOf(movimiento);
                 return Column(
                   children: [
                     Row(
                       children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(movimiento['time']),
-                        ),
                         Expanded(
                           flex: 2,
                           child: Text(movimiento['deal']),
@@ -634,15 +666,20 @@ class _AddInvestmentsState extends State<AddInvestments> {
                         ),
                         Expanded(
                           flex: 2,
+                          child: Text(movimiento['comment']),
+                        ),
+                        Expanded(
+                          flex: 1,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  movimiento['comment'],
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: true,
-                                ),
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    movements.removeAt(index);
+                                  });
+                                },
+                                icon: const Icon(Icons.remove),
                               ),
                             ],
                           ),
@@ -752,7 +789,19 @@ class _AddInvestmentsState extends State<AddInvestments> {
           ],
         );
       case 3:
-        return const Text('Revise la información antes de guardar.');
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () async {
+              await pdfHelper();
+              // ignore: use_build_context_synchronously
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('PDF generado correctamente')),
+              );
+            },
+            child: const Text('Generar PDF simple'),
+          ),
+        );
       default:
         return const SizedBox.shrink();
     }

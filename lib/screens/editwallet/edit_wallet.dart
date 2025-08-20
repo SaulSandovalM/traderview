@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/api/wallet_service.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/core/widgets/breadcrumbs.dart';
@@ -97,9 +96,11 @@ class _EditWalletState extends State<EditWallet> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isEditing
-              ? 'Cartera actualizada correctamente.'
-              : 'Cartera creada exitosamente.'),
+          content: Text(
+            isEditing
+                ? 'Cartera actualizada correctamente.'
+                : 'Cartera creada exitosamente.',
+          ),
         ),
       );
 

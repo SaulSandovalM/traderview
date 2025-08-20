@@ -299,9 +299,10 @@ class _CustomersState extends State<Customers> {
                                               context.go(
                                                   '/wallet/$customerId/$walletId');
                                             }
-                                            if (value == 'investment') {
+                                            if (value == 'investment' &&
+                                                walletId != null) {
                                               context.go(
-                                                  '/add-investments/$customerId');
+                                                  '/add-investments/$customerId/$walletId');
                                             }
                                           },
                                           itemBuilder: (context) => [

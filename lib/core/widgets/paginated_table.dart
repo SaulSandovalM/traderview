@@ -11,7 +11,6 @@ class PaginatedTable<T> extends StatelessWidget {
   final VoidCallback? onPrevPage;
   final bool showTitle;
   final bool isLastPage;
-  final bool differentFlex;
 
   const PaginatedTable({
     super.key,
@@ -23,7 +22,6 @@ class PaginatedTable<T> extends StatelessWidget {
     this.onPrevPage,
     this.showTitle = true,
     this.isLastPage = false,
-    this.differentFlex = false,
   });
 
   @override
@@ -91,17 +89,11 @@ class PaginatedTable<T> extends StatelessWidget {
       children: [
         for (int i = 0; i < headers.length; i++)
           Expanded(
-            flex: differentFlex
-                ? 2
-                : i == headers.length - 1
-                    ? 1
-                    : 2,
+            flex: i == headers.length - 1 ? 1 : 2,
             child: Row(
-              mainAxisAlignment: differentFlex
-                  ? MainAxisAlignment.start
-                  : i == headers.length - 1
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.start,
+              mainAxisAlignment: i == headers.length - 1
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
               children: [
                 Text(
                   headers[i],

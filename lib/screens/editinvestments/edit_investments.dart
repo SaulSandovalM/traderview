@@ -1,90 +1,687 @@
-// import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:traderview/api/customer_service.dart';
+import 'package:traderview/api/investments_service.dart';
+import 'package:traderview/core/constants/colors.dart';
+import 'package:traderview/core/formatters/decimal_text_input.dart';
+import 'package:traderview/core/widgets/breadcrumbs.dart';
+import 'package:go_router/go_router.dart';
+import 'package:traderview/core/widgets/custom_button.dart';
+import 'package:traderview/core/widgets/custom_card.dart';
+import 'package:traderview/core/widgets/custom_input.dart';
+import 'package:traderview/core/widgets/paginated_table.dart';
 
-// class EditInvestments extends StatefulWidget {
-//   final String investmentId;
+class EditInvestments extends StatefulWidget {
+  final String? customerId;
+  final String? investmentsId;
 
-//   const EditInvestments({required this.investment});
+  const EditInvestments({super.key, this.customerId, this.investmentsId});
 
-//   @override
-//   State<EditInvestments> createState() => _EditInvestmentsState();
-// }
+  @override
+  State<EditInvestments> createState() => _EditInvestmentsState();
+}
 
-// class _EditInvestmentsState extends State<EditInvestments> {
-//   late TextEditingController nameController;
-//   late List<Movement> movements;
+class _EditInvestmentsState extends State<EditInvestments> {
+  final _formKey = GlobalKey<FormState>();
+  int _currentStep = 0;
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     nameController = TextEditingController(text: widget.investment.name);
-//     movements = [...widget.investment.movements]; // Copia de los movimientos
-//   }
+  final _nameController = TextEditingController();
+  final _accountNumberController = TextEditingController();
+  final _currencyController = TextEditingController();
+  final _accountTypeController = TextEditingController();
+  final _companyController = TextEditingController();
 
-//   void _editMovement(int index) async {
-//     final edited = await showDialog(
-//       context: context,
-//       builder: (_) => EditMovementDialog(movement: movements[index]),
-//     );
+  List<Map<String, dynamic>> movements = [];
 
-//     if (edited != null) {
-//       setState(() {
-//         movements[index] = edited;
-//       });
-//     }
-//   }
+  final _netProfitController = TextEditingController();
+  final _grossProfitController = TextEditingController();
+  final _grossLossController = TextEditingController();
+  final _gainFactorController = TextEditingController();
+  final _expectedPaymentController = TextEditingController();
 
-//   void _deleteMovement(int index) {
-//     setState(() {
-//       movements.removeAt(index);
-//     });
-//   }
+  final _timeController = TextEditingController();
+  final _dealController = TextEditingController();
+  final _symbolController = TextEditingController();
+  final _typeController = TextEditingController();
+  final _directionController = TextEditingController();
+  final _volumeController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _orderController = TextEditingController();
+  final _commissionController = TextEditingController();
+  final _feeController = TextEditingController();
+  final _swapController = TextEditingController();
+  final _profitController = TextEditingController();
+  final _balanceController = TextEditingController();
+  final _commentController = TextEditingController();
 
-//   void _saveChanges() async {
-//     final updatedInvestment = widget.investment.copyWith(
-//       name: nameController.text,
-//       movements: movements,
-//     );
-//     await InvestmentsService().updateInvestment(updatedInvestment);
-//     Navigator.pop(context);
-//   }
+  final customerService = CustomerService();
+  final _investmentService = InvestmentService();
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Editar inversión')),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(children: [
-//           TextField(
-//               controller: nameController,
-//               decoration: InputDecoration(labelText: "Nombre")),
-//           const SizedBox(height: 20),
-//           const Text("Movimientos",
-//               style: TextStyle(fontWeight: FontWeight.bold)),
-//           Expanded(
-//             child: ListView.builder(
-//               itemCount: movements.length,
-//               itemBuilder: (_, index) {
-//                 final m = movements[index];
-//                 return ListTile(
-//                   title: Text("${m.type} - \$${m.amount}"),
-//                   subtitle: Text(m.comment),
-//                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-//                     IconButton(
-//                         icon: const Icon(Icons.edit),
-//                         onPressed: () => _editMovement(index)),
-//                     IconButton(
-//                         icon: const Icon(Icons.delete),
-//                         onPressed: () => _deleteMovement(index)),
-//                   ]),
-//                 );
-//               },
-//             ),
-//           ),
-//           ElevatedButton(
-//               onPressed: _saveChanges, child: const Text("Guardar cambios")),
-//         ]),
-//       ),
-//     );
-//   }
-// }
+  final _isFormValid = false;
+
+  void _saveForm() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final investmentData = {
+          'name': _nameController.text,
+          'accountNumber': _accountNumberController.text,
+          'currency': _currencyController.text,
+          'accountType': _accountTypeController.text,
+          'company': _companyController.text,
+          'movements': movements,
+          'netProfit': _netProfitController.text,
+          'grossProfit': _grossProfitController.text,
+          'grossLoss': _grossLossController.text,
+          'gainFactor': _gainFactorController.text,
+          'expectedPayment': _expectedPaymentController.text,
+        };
+
+        await _investmentService.saveMonthlyInvestment(
+          userId: widget.customerId!,
+          data: investmentData,
+        );
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Inversiones guardadas correctamente.'),
+          ),
+        );
+
+        context.go('/customers');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e')),
+        );
+      }
+    }
+  }
+
+  void _addMovement() {
+    setState(() {
+      movements.add({
+        'time': _timeController.text,
+        'deal': _dealController.text,
+        'symbol': _symbolController.text,
+        'type': _typeController.text,
+        'direction': _directionController.text,
+        'volume': _volumeController.text,
+        'price': _priceController.text,
+        'order': _orderController.text,
+        'commission': _commissionController.text,
+        'fee': _feeController.text,
+        'swap': _swapController.text,
+        'profit': _profitController.text,
+        'balance': _balanceController.text,
+        'comment': _commentController.text,
+      });
+      _timeController.clear();
+      _dealController.clear();
+      _symbolController.clear();
+      _typeController.clear();
+      _directionController.clear();
+      _volumeController.clear();
+      _priceController.clear();
+      _orderController.clear();
+      _commissionController.clear();
+      _feeController.clear();
+      _swapController.clear();
+      _profitController.clear();
+      _balanceController.clear();
+      _commentController.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Breadcrumbs(
+            backText: 'Clientes',
+            onPressed: () => context.go('/customers'),
+            text: 'Editar inversiones',
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: CustomCard(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildStepperHeader(),
+                    const SizedBox(height: 16),
+                    _buildStepContent(),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (_currentStep > 0)
+                          CustomButton(
+                            text: 'Regresar',
+                            onPressed: () => setState(() => _currentStep--),
+                            icon: Icons.arrow_back,
+                            color: CustomColor.bgButtonTableSecond,
+                            colorText: Colors.black,
+                          ),
+                        CustomButton(
+                          text: _currentStep < 3 ? 'Siguiente' : 'Guardar',
+                          onPressed: () {
+                            if (_currentStep < 3) {
+                              if (_currentStep == 1 ||
+                                  _formKey.currentState!.validate()) {
+                                setState(() => _currentStep++);
+                              }
+                            } else {
+                              if (_formKey.currentState!.validate()) {
+                                _saveForm();
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepperHeader() {
+    final steps = [
+      {'label': 'Datos'},
+      {'label': 'Movimientos'},
+      {'label': 'Resumen'},
+      {'label': 'Confirmar'},
+    ];
+
+    return Row(
+      children: List.generate(steps.length, (index) {
+        final isActive = index == _currentStep;
+        final isCompleted = index < _currentStep;
+
+        return Expanded(
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: isActive
+                        ? Colors.deepPurple
+                        : isCompleted
+                            ? Colors.deepPurple
+                            : Colors.grey.shade300,
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        color: isActive || isCompleted
+                            ? Colors.white
+                            : Colors.black54,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (index != steps.length)
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        color: isCompleted
+                            ? Colors.deepPurple
+                            : Colors.grey.shade300,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Text(
+                    steps[index]['label']!,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isActive
+                          ? Colors.deepPurple
+                          : isCompleted
+                              ? Colors.deepPurple
+                              : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildStepContent() {
+    switch (_currentStep) {
+      case 0:
+        return Column(
+          children: [
+            CustomInput(
+              controller: _nameController,
+              label: 'Nombre completo',
+              readOnly: true,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _accountNumberController,
+                    label: 'Número de cuenta',
+                    readOnly: true,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: CustomInput(
+                    controller: _currencyController,
+                    label: 'Moneda',
+                    readOnly: true,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _accountTypeController,
+                    label: 'Tipo de cuenta',
+                    readOnly: true,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: CustomInput(
+                    controller: _companyController,
+                    label: 'Compañía',
+                    readOnly: true,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        );
+      case 1:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _timeController,
+                    label: 'Hora',
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _dealController,
+                    label: 'Trato',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _symbolController,
+                    label: 'Símbolo',
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _typeController,
+                    label: 'Tipo',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _directionController,
+                    label: 'Dirección',
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _volumeController,
+                    label: 'Volumen',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _priceController,
+                    label: 'Precio',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _orderController,
+                    label: 'Orden',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _commissionController,
+                    label: 'Comisión',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _feeController,
+                    label: 'Honorario',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _swapController,
+                    label: 'Intercambio',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _profitController,
+                    label: 'Beneficio',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _balanceController,
+                    label: 'Equilibrar',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: CustomInput(
+                    controller: _commentController,
+                    label: 'Comentario',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            CustomButton(
+              text: 'Agregar movimiento',
+              onPressed: _isFormValid ? _addMovement : () {},
+              color: Colors.deepPurple,
+            ),
+            const SizedBox(height: 10),
+            PaginatedTable<Map<String, dynamic>>(
+              title: '',
+              showTitle: false,
+              headers: const [
+                'Hora',
+                'Trato',
+                'Beneficio',
+                'Equilibrar',
+                'Comentario'
+              ],
+              items: movements,
+              rowBuilder: (movimiento) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['time']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['deal']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['profit']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(movimiento['balance']),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  movimiento['comment'],
+                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                  ],
+                );
+              },
+            )
+          ],
+        );
+      case 2:
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _netProfitController,
+                    label: 'Beneficio Neto Total',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: CustomInput(
+                    controller: _grossProfitController,
+                    label: 'Beneficio Bruto',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomInput(
+                    controller: _grossLossController,
+                    label: 'Pérdida Bruta',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: CustomInput(
+                    controller: _gainFactorController,
+                    label: 'Factor de Ganancia',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      DecimalTextInputFormatter(decimalRange: 2),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Campo requerido'
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            CustomInput(
+              controller: _expectedPaymentController,
+              label: 'Pago Esperado',
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                DecimalTextInputFormatter(decimalRange: 2),
+                LengthLimitingTextInputFormatter(10),
+              ],
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Campo requerido' : null,
+            ),
+            const SizedBox(height: 24),
+          ],
+        );
+      case 3:
+        return const Text('Revise la información antes de guardar.');
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+}

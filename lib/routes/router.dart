@@ -12,6 +12,7 @@ import 'package:traderview/screens/createwallet/create_wallet.dart';
 import 'package:traderview/screens/customers/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/editcustomer/edit_customer.dart';
+import 'package:traderview/screens/editinvestments/edit_investments.dart';
 import 'package:traderview/screens/editwallet/edit_wallet.dart';
 import 'package:traderview/screens/investments/view/investments.dart';
 import 'package:traderview/screens/accountstatements/account_statements.dart';
@@ -169,11 +170,27 @@ final router = GoRouter(
           },
         ),
         GoRoute(
-          path: '/add-investments/:customerId',
+          path: '/add-investments/:customerId/:walletId',
           name: 'add-investments',
           builder: (context, state) {
             final customerId = state.pathParameters['customerId']!;
-            return AddInvestments(customerId: customerId);
+            final walletId = state.pathParameters['walletId']!;
+            return AddInvestments(
+              customerId: customerId,
+              walletId: walletId,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/edit-investments/:customerId/:investmentsId',
+          name: 'edit-investments',
+          builder: (context, state) {
+            final customerId = state.pathParameters['customerId']!;
+            final investmentsId = state.pathParameters['investmentsId']!;
+            return EditInvestments(
+              customerId: customerId,
+              investmentsId: investmentsId,
+            );
           },
         ),
         GoRoute(
