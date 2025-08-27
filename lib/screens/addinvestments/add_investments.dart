@@ -4,22 +4,21 @@ import 'package:traderview/api/investments_service.dart';
 import 'package:traderview/api/wallet_service.dart';
 import 'package:traderview/core/constants/colors.dart';
 import 'package:traderview/core/formatters/decimal_text_input.dart';
-// import 'package:traderview/core/helpers/pdf_helper.dart';
+import 'package:traderview/core/helpers/generate_pdf.dart';
 import 'package:traderview/core/widgets/breadcrumbs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/custom_card.dart';
 import 'package:traderview/core/widgets/custom_input.dart';
 import 'package:traderview/core/widgets/paginated_table.dart';
-// import 'dart:io';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 class AddInvestments extends StatefulWidget {
   final String? customerId;
   final String? walletId;
+  final String? investmentId;
 
-  const AddInvestments({super.key, this.customerId, this.walletId});
+  const AddInvestments(
+      {super.key, this.customerId, this.walletId, this.investmentId});
 
   @override
   State<AddInvestments> createState() => _AddInvestmentsState();
@@ -208,21 +207,6 @@ class _AddInvestmentsState extends State<AddInvestments> {
         );
       }
     }
-  }
-
-  Future<void> pdfHelper() async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) => pw.Center(
-          child: pw.Text('Hello World!'),
-        ),
-      ),
-    );
-
-    // final file = File('example.pdf');
-    await Printing.sharePdf(bytes: await pdf.save(), filename: 'example.pdf');
   }
 
   @override
@@ -793,7 +777,34 @@ class _AddInvestmentsState extends State<AddInvestments> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () async {
-              await pdfHelper();
+              await generatePdf(
+                filename: 'inversion.pdf',
+                name: _nameController.text,
+                accountNumber: _accountNumberController.text,
+                currencyController: _currencyController.text,
+                accountType: _accountTypeController.text,
+                company: _companyController.text,
+                movements: movements,
+                netProfit: _netProfitController.text,
+                grossProfit: _grossProfitController.text,
+                grossLoss: _grossLossController.text,
+                gainFactor: _gainFactorController.text,
+                expectedPayment: _expectedPaymentController.text,
+                time: _timeController.text,
+                deal: _dealController.text,
+                symbol: _symbolController.text,
+                type: _typeController.text,
+                direction: _directionController.text,
+                volume: _volumeController.text,
+                price: _priceController.text,
+                order: _orderController.text,
+                commission: _commissionController.text,
+                fee: _feeController.text,
+                swap: _swapController.text,
+                profit: _profitController.text,
+                balance: _balanceController.text,
+                comment: _commentController.text,
+              );
               // ignore: use_build_context_synchronously
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('PDF generado correctamente')),

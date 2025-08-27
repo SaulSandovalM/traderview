@@ -65,6 +65,49 @@ class _CustomersState extends State<Customers> {
     }
   }
 
+  Future<void> _openInvestmentFlow(String customerId) async {
+    try {
+      // 1) Asegurar que tenga cartera
+      final walletId = await walletService.getWalletId(customerId);
+      if (walletId == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Este cliente no tiene cartera. Creémosla primero.'),
+          ),
+        );
+        context.go('/create-wallet/$customerId');
+        return;
+      }
+
+      // 2) Calcular el ID del mes actual
+      final now = DateTime.now();
+      final currentMonthId =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}";
+
+      // 3) Verificar si ya existe inversión para este mes
+      final investmentRef = FirebaseFirestore.instance
+          .collection("users")
+          .doc(customerId)
+          .collection("investments")
+          .doc(currentMonthId);
+
+      final snap = await investmentRef.get();
+
+      if (!mounted) return;
+      if (snap.exists) {
+        context.go('/edit-investments/$customerId/$walletId/$currentMonthId');
+      } else {
+        context.go('/add-investments/$customerId/$walletId/$currentMonthId');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al abrir inversiones: $e')),
+      );
+    }
+  }
+
   Future<void> loadPreviousPage() async {
     if (previousDocs.isEmpty) return;
 
@@ -186,6 +229,7 @@ class _CustomersState extends State<Customers> {
                                                     doc.data()['email'] ==
                                                     cliente['email'])
                                                 .id;
+
                                             if (value == 'edit') {
                                               context.go('/edit-customer/$id');
                                             }
@@ -193,8 +237,7 @@ class _CustomersState extends State<Customers> {
                                               context.go('/create-wallet/$id');
                                             }
                                             if (value == 'investment') {
-                                              context
-                                                  .go('/add-investments/$id');
+                                              _openInvestmentFlow(id);
                                             }
                                           },
                                           itemBuilder: (context) => [
@@ -246,6 +289,7 @@ class _CustomersState extends State<Customers> {
                     items: currentDocs.map((doc) {
                       final data = doc.data();
                       return {
+                        'id': doc.id,
                         'name': data['name'] ?? '',
                         'email': data['email'] ?? '',
                         'phone': data['phone'] ?? '',
@@ -299,10 +343,8 @@ class _CustomersState extends State<Customers> {
                                               context.go(
                                                   '/wallet/$customerId/$walletId');
                                             }
-                                            if (value == 'investment' &&
-                                                walletId != null) {
-                                              context.go(
-                                                  '/add-investments/$customerId/$walletId');
+                                            if (value == 'investment') {
+                                              _openInvestmentFlow(customerId);
                                             }
                                           },
                                           itemBuilder: (context) => [

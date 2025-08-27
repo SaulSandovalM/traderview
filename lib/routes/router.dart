@@ -169,30 +169,60 @@ final router = GoRouter(
             );
           },
         ),
+        // GoRoute(
+        //   path: '/add-investments/:customerId/:walletId',
+        //   name: 'add-investments',
+        //   builder: (context, state) {
+        //     final customerId = state.pathParameters['customerId']!;
+        //     final walletId = state.pathParameters['walletId']!;
+        //     return AddInvestments(
+        //       customerId: customerId,
+        //       walletId: walletId,
+        //     );
+        //   },
+        // ),
         GoRoute(
-          path: '/add-investments/:customerId/:walletId',
+          path: '/add-investments/:customerId/:walletId/:investmentId',
           name: 'add-investments',
           builder: (context, state) {
             final customerId = state.pathParameters['customerId']!;
             final walletId = state.pathParameters['walletId']!;
+            final investmentId = state.pathParameters['investmentId']!;
             return AddInvestments(
               customerId: customerId,
               walletId: walletId,
+              investmentId: investmentId, // << nuevo parámetro
             );
           },
         ),
+
         GoRoute(
-          path: '/edit-investments/:customerId/:investmentsId',
+          path: '/edit-investments/:customerId/:walletId/:investmentId',
           name: 'edit-investments',
           builder: (context, state) {
             final customerId = state.pathParameters['customerId']!;
-            final investmentsId = state.pathParameters['investmentsId']!;
+            final walletId = state.pathParameters['walletId']!;
+            final investmentId = state.pathParameters['investmentId']!;
             return EditInvestments(
               customerId: customerId,
-              investmentsId: investmentsId,
+              walletId: walletId,
+              investmentId: investmentId,
             );
           },
         ),
+
+        // GoRoute(
+        //   path: '/edit-investments/:customerId/:investmentsId',
+        //   name: 'edit-investments',
+        //   builder: (context, state) {
+        //     final customerId = state.pathParameters['customerId']!;
+        //     final investmentsId = state.pathParameters['investmentsId']!;
+        //     return EditInvestments(
+        //       customerId: customerId,
+        //       investmentsId: investmentsId,
+        //     );
+        //   },
+        // ),
         GoRoute(
           path: '/account_statements',
           builder: (context, state) => const AccountStatements(),

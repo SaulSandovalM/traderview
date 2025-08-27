@@ -13,9 +13,11 @@ import 'package:traderview/core/widgets/paginated_table.dart';
 
 class EditInvestments extends StatefulWidget {
   final String? customerId;
-  final String? investmentsId;
+  final String? investmentId;
+  final String? walletId;
 
-  const EditInvestments({super.key, this.customerId, this.investmentsId});
+  const EditInvestments(
+      {super.key, this.customerId, this.investmentId, this.walletId});
 
   @override
   State<EditInvestments> createState() => _EditInvestmentsState();
