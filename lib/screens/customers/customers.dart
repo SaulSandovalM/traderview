@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:traderview/api/customer_service.dart';
 import 'package:traderview/api/wallet_service.dart';
+import 'package:traderview/api/investments_service.dart';
 import 'package:traderview/core/widgets/custom_button.dart';
 import 'package:traderview/core/widgets/paginated_table.dart';
 import 'package:traderview/core/widgets/search.dart';
@@ -30,6 +31,7 @@ class _CustomersState extends State<Customers> {
 
   final CustomerService customerRepo = CustomerService();
   final WalletService walletService = WalletService();
+  final InvestmentService investmentService = InvestmentService();
 
   @override
   void initState() {
@@ -67,7 +69,6 @@ class _CustomersState extends State<Customers> {
 
   Future<void> _openInvestmentFlow(String customerId) async {
     try {
-      // 1) Asegurar que tenga cartera
       final walletId = await walletService.getWalletId(customerId);
       if (walletId == null) {
         if (!mounted) return;
@@ -79,27 +80,8 @@ class _CustomersState extends State<Customers> {
         context.go('/create-wallet/$customerId');
         return;
       }
-
-      // 2) Calcular el ID del mes actual
-      final now = DateTime.now();
-      final currentMonthId =
-          "${now.year}-${now.month.toString().padLeft(2, '0')}";
-
-      // 3) Verificar si ya existe inversión para este mes
-      final investmentRef = FirebaseFirestore.instance
-          .collection("users")
-          .doc(customerId)
-          .collection("investments")
-          .doc(currentMonthId);
-
-      final snap = await investmentRef.get();
-
       if (!mounted) return;
-      if (snap.exists) {
-        context.go('/edit-investments/$customerId/$walletId/$currentMonthId');
-      } else {
-        context.go('/add-investments/$customerId/$walletId/$currentMonthId');
-      }
+      context.go('/investments/$customerId');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -210,67 +192,94 @@ class _CustomersState extends State<Customers> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    FutureBuilder<bool>(
-                                      future: walletService.hasWallet(
-                                          currentDocs
-                                              .firstWhere((doc) =>
-                                                  doc.data()['email'] ==
-                                                  cliente['email'])
-                                              .id),
-                                      builder: (context, snapshot) {
-                                        final walletExists =
-                                            snapshot.data ?? false;
+                                    FutureBuilder<String?>(
+                                      future: walletService.getWalletId(
+                                        currentDocs
+                                            .firstWhere((doc) =>
+                                                doc.data()['email'] ==
+                                                cliente['email'])
+                                            .id,
+                                      ),
+                                      builder: (context, walletSnap) {
+                                        final walletId = walletSnap.data;
+                                        final customerId = currentDocs
+                                            .firstWhere((doc) =>
+                                                doc.data()['email'] ==
+                                                cliente['email'])
+                                            .id;
 
-                                        return PopupMenuButton<String>(
-                                          icon: const Icon(Icons.more_vert),
-                                          onSelected: (value) {
-                                            final id = currentDocs
-                                                .firstWhere((doc) =>
-                                                    doc.data()['email'] ==
-                                                    cliente['email'])
-                                                .id;
+                                        return FutureBuilder<bool>(
+                                          future: investmentService
+                                              .hasCurrentMonthInvestment(
+                                                  customerId),
+                                          builder: (context, investSnap) {
+                                            final hasInvestment =
+                                                investSnap.data ?? false;
 
-                                            if (value == 'edit') {
-                                              context.go('/edit-customer/$id');
-                                            }
-                                            if (value == 'wallet') {
-                                              context.go('/create-wallet/$id');
-                                            }
-                                            if (value == 'investment') {
-                                              _openInvestmentFlow(id);
-                                            }
+                                            return PopupMenuButton<String>(
+                                              icon: const Icon(Icons.more_vert),
+                                              onSelected: (value) {
+                                                if (value == 'edit') {
+                                                  context.go(
+                                                      '/edit-customer/$customerId');
+                                                }
+                                                if (value == 'edit-wallet' &&
+                                                    walletId != null) {
+                                                  context.go(
+                                                      '/wallet/$customerId/$walletId');
+                                                }
+                                                if (value == 'investment') {
+                                                  _openInvestmentFlow(
+                                                      customerId);
+                                                }
+                                              },
+                                              itemBuilder: (context) => [
+                                                const PopupMenuItem(
+                                                  value: 'edit',
+                                                  child: ListTile(
+                                                    leading: Icon(Icons.edit),
+                                                    title: Text('Editar'),
+                                                  ),
+                                                ),
+                                                if (walletId == null)
+                                                  const PopupMenuItem(
+                                                    value: 'wallet',
+                                                    child: ListTile(
+                                                      leading: Icon(Icons
+                                                          .account_balance_wallet),
+                                                      title:
+                                                          Text('Crear cartera'),
+                                                    ),
+                                                  ),
+                                                if (walletId != null)
+                                                  const PopupMenuItem(
+                                                    value: 'edit-wallet',
+                                                    child: ListTile(
+                                                      leading: Icon(Icons
+                                                          .account_balance_wallet),
+                                                      title: Text(
+                                                          'Editar cartera'),
+                                                    ),
+                                                  ),
+                                                if (walletId != null)
+                                                  PopupMenuItem(
+                                                    value: 'investment',
+                                                    child: ListTile(
+                                                      leading: const Icon(Icons
+                                                          .waterfall_chart),
+                                                      title: Text(
+                                                        hasInvestment
+                                                            ? 'Editar inversiones'
+                                                            : 'Agregar inversiones',
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            );
                                           },
-                                          itemBuilder: (context) => [
-                                            const PopupMenuItem(
-                                              value: 'edit',
-                                              child: ListTile(
-                                                leading: Icon(Icons.edit),
-                                                title: Text('Editar'),
-                                              ),
-                                            ),
-                                            if (!walletExists)
-                                              const PopupMenuItem(
-                                                value: 'wallet',
-                                                child: ListTile(
-                                                  leading: Icon(Icons
-                                                      .account_balance_wallet),
-                                                  title: Text('Crear cartera'),
-                                                ),
-                                              ),
-                                            if (walletExists)
-                                              const PopupMenuItem(
-                                                value: 'investment',
-                                                child: ListTile(
-                                                  leading:
-                                                      Icon(Icons.attach_money),
-                                                  title: Text(
-                                                      'Agregar inversiones'),
-                                                ),
-                                              ),
-                                          ],
                                         );
                                       },
-                                    ),
+                                    )
                                   ],
                                 ),
                               ),
@@ -319,71 +328,83 @@ class _CustomersState extends State<Customers> {
                                                 cliente['email'])
                                             .id,
                                       ),
-                                      builder: (context, snapshot) {
-                                        final walletId = snapshot.data;
+                                      builder: (context, walletSnap) {
+                                        final walletId = walletSnap.data;
+                                        final customerId = currentDocs
+                                            .firstWhere((doc) =>
+                                                doc.data()['email'] ==
+                                                cliente['email'])
+                                            .id;
 
-                                        return PopupMenuButton<String>(
-                                          icon: const Icon(Icons.more_vert),
-                                          onSelected: (value) {
-                                            final customerId = currentDocs
-                                                .firstWhere((doc) =>
-                                                    doc.data()['email'] ==
-                                                    cliente['email'])
-                                                .id;
-                                            if (value == 'edit') {
-                                              context.go(
-                                                  '/edit-customer/$customerId');
-                                            }
-                                            if (value == 'wallet') {
-                                              context.go(
-                                                  '/create-wallet/$customerId');
-                                            }
-                                            if (value == 'edit-wallet' &&
-                                                walletId != null) {
-                                              context.go(
-                                                  '/wallet/$customerId/$walletId');
-                                            }
-                                            if (value == 'investment') {
-                                              _openInvestmentFlow(customerId);
-                                            }
+                                        return FutureBuilder<bool>(
+                                          future: investmentService
+                                              .hasCurrentMonthInvestment(
+                                                  customerId),
+                                          builder: (context, investSnap) {
+                                            final hasInvestment =
+                                                investSnap.data ?? false;
+
+                                            return PopupMenuButton<String>(
+                                              icon: const Icon(Icons.more_vert),
+                                              onSelected: (value) {
+                                                if (value == 'edit') {
+                                                  context.go(
+                                                      '/edit-customer/$customerId');
+                                                }
+                                                if (value == 'edit-wallet' &&
+                                                    walletId != null) {
+                                                  context.go(
+                                                      '/wallet/$customerId/$walletId');
+                                                }
+                                                if (value == 'investment') {
+                                                  _openInvestmentFlow(
+                                                      customerId);
+                                                }
+                                              },
+                                              itemBuilder: (context) => [
+                                                const PopupMenuItem(
+                                                  value: 'edit',
+                                                  child: ListTile(
+                                                    leading: Icon(Icons.edit),
+                                                    title: Text('Editar'),
+                                                  ),
+                                                ),
+                                                if (walletId == null)
+                                                  const PopupMenuItem(
+                                                    value: 'wallet',
+                                                    child: ListTile(
+                                                      leading: Icon(Icons
+                                                          .account_balance_wallet),
+                                                      title:
+                                                          Text('Crear cartera'),
+                                                    ),
+                                                  ),
+                                                if (walletId != null)
+                                                  const PopupMenuItem(
+                                                    value: 'edit-wallet',
+                                                    child: ListTile(
+                                                      leading: Icon(Icons
+                                                          .account_balance_wallet),
+                                                      title: Text(
+                                                          'Editar cartera'),
+                                                    ),
+                                                  ),
+                                                if (walletId != null)
+                                                  PopupMenuItem(
+                                                    value: 'investment',
+                                                    child: ListTile(
+                                                      leading: const Icon(Icons
+                                                          .waterfall_chart),
+                                                      title: Text(
+                                                        hasInvestment
+                                                            ? 'Editar inversiones'
+                                                            : 'Agregar inversiones',
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            );
                                           },
-                                          itemBuilder: (context) => [
-                                            const PopupMenuItem(
-                                              value: 'edit',
-                                              child: ListTile(
-                                                leading: Icon(Icons.edit),
-                                                title: Text('Editar'),
-                                              ),
-                                            ),
-                                            if (walletId == null)
-                                              const PopupMenuItem(
-                                                value: 'wallet',
-                                                child: ListTile(
-                                                  leading: Icon(Icons
-                                                      .account_balance_wallet),
-                                                  title: Text('Crear cartera'),
-                                                ),
-                                              ),
-                                            if (walletId != null)
-                                              const PopupMenuItem(
-                                                value: 'edit-wallet',
-                                                child: ListTile(
-                                                  leading: Icon(Icons
-                                                      .account_balance_wallet),
-                                                  title: Text('Editar cartera'),
-                                                ),
-                                              ),
-                                            if (walletId != null)
-                                              const PopupMenuItem(
-                                                value: 'investment',
-                                                child: ListTile(
-                                                  leading: Icon(
-                                                      Icons.waterfall_chart),
-                                                  title: Text(
-                                                      'Agregar inversiones'),
-                                                ),
-                                              ),
-                                          ],
                                         );
                                       },
                                     )

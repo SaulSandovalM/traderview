@@ -16,4 +16,18 @@ class InvestmentService {
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
+
+  Future<bool> hasCurrentMonthInvestment(String customerId) async {
+    final now = DateTime.now();
+    final currentMonthId =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}";
+
+    final investmentRef = _firestore
+        .doc(customerId)
+        .collection("investments")
+        .doc(currentMonthId);
+
+    final snapshot = await investmentRef.get();
+    return snapshot.exists;
+  }
 }

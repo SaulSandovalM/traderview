@@ -12,10 +12,10 @@ import 'package:traderview/screens/createwallet/create_wallet.dart';
 import 'package:traderview/screens/customers/customers.dart';
 import 'package:traderview/screens/dashboard/view/admin_dash.dart';
 import 'package:traderview/screens/editcustomer/edit_customer.dart';
-import 'package:traderview/screens/editinvestments/edit_investments.dart';
 import 'package:traderview/screens/editwallet/edit_wallet.dart';
 import 'package:traderview/screens/investments/view/investments.dart';
 import 'package:traderview/screens/accountstatements/account_statements.dart';
+import 'package:traderview/screens/investmentslist/investments_list.dart';
 import 'package:traderview/screens/signin/sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -169,18 +169,6 @@ final router = GoRouter(
             );
           },
         ),
-        // GoRoute(
-        //   path: '/add-investments/:customerId/:walletId',
-        //   name: 'add-investments',
-        //   builder: (context, state) {
-        //     final customerId = state.pathParameters['customerId']!;
-        //     final walletId = state.pathParameters['walletId']!;
-        //     return AddInvestments(
-        //       customerId: customerId,
-        //       walletId: walletId,
-        //     );
-        //   },
-        // ),
         GoRoute(
           path: '/add-investments/:customerId/:walletId/:investmentId',
           name: 'add-investments',
@@ -195,31 +183,27 @@ final router = GoRouter(
             );
           },
         ),
-
         GoRoute(
-          path: '/edit-investments/:customerId/:walletId/:investmentId',
-          name: 'edit-investments',
+          path: '/investments/:customerId',
           builder: (context, state) {
             final customerId = state.pathParameters['customerId']!;
-            final walletId = state.pathParameters['walletId']!;
-            final investmentId = state.pathParameters['investmentId']!;
-            return EditInvestments(
+            return InvestmentsList(
               customerId: customerId,
-              walletId: walletId,
-              investmentId: investmentId,
             );
           },
         ),
 
         // GoRoute(
-        //   path: '/edit-investments/:customerId/:investmentsId',
+        //   path: '/edit-investments/:customerId/:walletId/:investmentId',
         //   name: 'edit-investments',
         //   builder: (context, state) {
         //     final customerId = state.pathParameters['customerId']!;
-        //     final investmentsId = state.pathParameters['investmentsId']!;
+        //     final walletId = state.pathParameters['walletId']!;
+        //     final investmentId = state.pathParameters['investmentId']!;
         //     return EditInvestments(
         //       customerId: customerId,
-        //       investmentsId: investmentsId,
+        //       walletId: walletId,
+        //       investmentId: investmentId,
         //     );
         //   },
         // ),
